@@ -22,14 +22,14 @@ const rankingTokens = Array.from(
   document.querySelectorAll(".ranking-token")
 );
 
+const tokenRow = document.querySelector(".token-row");
+
 const advanceButton = document.querySelector(
   ".advance-button"
 );
 
 let activePlayerIndex = 0;
 
-// Stores the token held by each player.
-// Example: [1, 3, null, 4]
 const playerTokens = [
   null,
   null,
@@ -51,38 +51,54 @@ function findTokenOwner(tokenNumber) {
   });
 }
 
+function getTokenButton(tokenNumber) {
+  return rankingTokens.find(function (button) {
+    return Number(button.textContent) === tokenNumber;
+  });
+}
+
 function updateTokenDisplay() {
+  // First return every physical token to the shared pool.
+  rankingTokens
+    .slice()
+    .sort(function (firstButton, secondButton) {
+      return (
+        Number(firstButton.textContent) -
+        Number(secondButton.textContent)
+      );
+    })
+    .forEach(function (button) {
+      tokenRow.appendChild(button);
+    });
+
   playerRows.forEach(function (row, playerIndex) {
-    const tokenDisplay = row.querySelector(".owned-token");
+    const tokenSpace = row.querySelector(".owned-token");
     const statusDisplay = row.querySelector(
       ".player-info span"
     );
+
+    tokenSpace.replaceChildren();
 
     row.classList.toggle(
       "active-player",
       playerIndex === activePlayerIndex
     );
 
-    if (playerTokens[playerIndex] === null) {
-      tokenDisplay.textContent = "—";
-      tokenDisplay.classList.remove("has-token");
+    const playerToken = playerTokens[playerIndex];
+
+    if (playerToken === null) {
+      tokenSpace.textContent = "—";
+      tokenSpace.classList.remove("has-token");
       statusDisplay.textContent = "Waiting for token";
     } else {
-      tokenDisplay.textContent = playerTokens[playerIndex];
-      tokenDisplay.classList.add("has-token");
+      const tokenButton = getTokenButton(playerToken);
+
+      tokenSpace.classList.add("has-token");
+      tokenSpace.appendChild(tokenButton);
+
       statusDisplay.textContent =
-        "Holding token " + playerTokens[playerIndex];
+        "Holding token " + playerToken;
     }
-  });
-
-  rankingTokens.forEach(function (button) {
-    const tokenNumber = Number(button.textContent);
-    const ownerIndex = findTokenOwner(tokenNumber);
-
-    button.classList.toggle(
-      "claimed-token",
-      ownerIndex !== -1
-    );
   });
 
   const everyoneHasToken = playerTokens.every(
@@ -105,14 +121,14 @@ function giveTokenToActivePlayer(tokenNumber) {
   const currentToken = playerTokens[activePlayerIndex];
   const currentOwnerIndex = findTokenOwner(tokenNumber);
 
-  // Tapping your current token returns it to the pool.
+  // Tapping your own token returns it to the pool.
   if (currentOwnerIndex === activePlayerIndex) {
     playerTokens[activePlayerIndex] = null;
     updateTokenDisplay();
     return;
   }
 
-  // If another player owns this token, exchange tokens.
+  // If someone else owns it, move or exchange it.
   if (currentOwnerIndex !== -1) {
     playerTokens[currentOwnerIndex] = currentToken;
   }
@@ -146,8 +162,11 @@ playerRows.forEach(function (row, playerIndex) {
 });
 
 rankingTokens.forEach(function (button) {
-  button.addEventListener("click", function () {
+  button.addEventListener("click", function (event) {
+    event.stopPropagation();
+
     const tokenNumber = Number(button.textContent);
+
     giveTokenToActivePlayer(tokenNumber);
   });
 });

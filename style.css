@@ -414,3 +414,33 @@ button:disabled {
     height: 43px;
   }
 }
+.player-row {
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.player-row.active-player {
+  border-left-color: #ffffff;
+  background: rgba(242, 201, 109, 0.2);
+  box-shadow:
+    0 0 0 2px rgba(242, 201, 109, 0.7),
+    0 5px 12px rgba(0, 0, 0, 0.2);
+}
+
+.owned-token.has-token {
+  border-color: transparent;
+}
+
+.owned-token .ranking-token {
+  width: 39px;
+  min-height: 39px;
+  border-width: 2px;
+  font-size: 1rem;
+}
+
+.ranking-token:active {
+  transform: scale(0.91);
+}
