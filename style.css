@@ -61,7 +61,7 @@ main {
 }
 
 section[hidden] {
-  display: none;
+  display: none !important;
 }
 
 #menu-screen,
