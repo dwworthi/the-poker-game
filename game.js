@@ -28,7 +28,54 @@ const advanceButton = document.querySelector(
   ".advance-button"
 );
 
+const stageLabel = document.querySelector(
+  ".game-header p"
+);
+
+const communityCardElements = Array.from(
+  document.querySelectorAll(".community-cards .card")
+);
+
+const suits = [
+  {
+    symbol: "♠",
+    color: "black"
+  },
+  {
+    symbol: "♥",
+    color: "red"
+  },
+  {
+    symbol: "♦",
+    color: "red"
+  },
+  {
+    symbol: "♣",
+    color: "black"
+  }
+];
+
+const ranks = [
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "J",
+  "Q",
+  "K",
+  "A"
+];
+
 let activePlayerIndex = 0;
+let currentStage = "preflop";
+let deck = [];
+let playerHands = [];
+let communityCards = [];
 
 const playerTokens = [
   null,
@@ -45,6 +92,170 @@ function showScreen(screenToShow) {
   screenToShow.hidden = false;
 }
 
+function createDeck() {
+  const newDeck = [];
+
+  suits.forEach(function (suit) {
+    ranks.forEach(function (rank) {
+      newDeck.push({
+        rank: rank,
+        suit: suit.symbol,
+        color: suit.color
+      });
+    });
+  });
+
+  return newDeck;
+}
+
+function shuffleDeck(cards) {
+  for (
+    let currentIndex = cards.length - 1;
+    currentIndex > 0;
+    currentIndex -= 1
+  ) {
+    const randomIndex = Math.floor(
+      Math.random() * (currentIndex + 1)
+    );
+
+    const temporaryCard = cards[currentIndex];
+
+    cards[currentIndex] = cards[randomIndex];
+    cards[randomIndex] = temporaryCard;
+  }
+
+  return cards;
+}
+
+function dealNewRound() {
+  deck = shuffleDeck(createDeck());
+
+  playerHands = [
+    [],
+    [],
+    [],
+    []
+  ];
+
+  // Deal one card to every player, twice.
+  for (let cardNumber = 0; cardNumber < 2; cardNumber += 1) {
+    for (
+      let playerIndex = 0;
+      playerIndex < playerHands.length;
+      playerIndex += 1
+    ) {
+      playerHands[playerIndex].push(deck.pop());
+    }
+  }
+
+  communityCards = [
+    deck.pop(),
+    deck.pop(),
+    deck.pop(),
+    deck.pop(),
+    deck.pop()
+  ];
+
+  currentStage = "preflop";
+  activePlayerIndex = 0;
+
+  playerTokens.fill(null);
+
+  renderPlayerHands();
+  renderCommunityCards();
+  updateTokenDisplay();
+}
+
+function displayCard(cardElement, card) {
+  cardElement.replaceChildren();
+
+  const rankElement = document.createElement("span");
+  const suitElement = document.createElement("span");
+
+  rankElement.textContent = card.rank;
+  suitElement.textContent = card.suit;
+
+  cardElement.appendChild(rankElement);
+  cardElement.appendChild(suitElement);
+
+  cardElement.classList.remove("card-slot");
+  cardElement.classList.toggle(
+    "red-card",
+    card.color === "red"
+  );
+}
+
+function hideCard(cardElement) {
+  cardElement.replaceChildren();
+  cardElement.textContent = "?";
+
+  cardElement.classList.add("card-slot");
+  cardElement.classList.remove("red-card");
+}
+
+function renderPlayerHands() {
+  playerRows.forEach(function (row, playerIndex) {
+    const cardElements = Array.from(
+      row.querySelectorAll(".mini-hand .card")
+    );
+
+    cardElements.forEach(function (
+      cardElement,
+      cardIndex
+    ) {
+      displayCard(
+        cardElement,
+        playerHands[playerIndex][cardIndex]
+      );
+    });
+  });
+}
+
+function getVisibleCommunityCardCount() {
+  if (currentStage === "preflop") {
+    return 0;
+  }
+
+  if (currentStage === "flop") {
+    return 3;
+  }
+
+  if (currentStage === "turn") {
+    return 4;
+  }
+
+  return 5;
+}
+
+function renderCommunityCards() {
+  const visibleCardCount =
+    getVisibleCommunityCardCount();
+
+  communityCardElements.forEach(function (
+    cardElement,
+    cardIndex
+  ) {
+    if (cardIndex < visibleCardCount) {
+      displayCard(
+        cardElement,
+        communityCards[cardIndex]
+      );
+    } else {
+      hideCard(cardElement);
+    }
+  });
+
+  if (currentStage === "preflop") {
+    stageLabel.textContent = "Pre-Flop";
+  } else if (currentStage === "flop") {
+    stageLabel.textContent = "Flop";
+  } else if (currentStage === "turn") {
+    stageLabel.textContent = "Turn";
+  } else {
+    stageLabel.textContent = "River";
+  }
+}
+
 function findTokenOwner(tokenNumber) {
   return playerTokens.findIndex(function (token) {
     return token === tokenNumber;
@@ -57,8 +268,33 @@ function getTokenButton(tokenNumber) {
   });
 }
 
+function updateAdvanceButton() {
+  const everyoneHasToken = playerTokens.every(
+    function (token) {
+      return token !== null;
+    }
+  );
+
+  advanceButton.disabled = !everyoneHasToken;
+
+  if (!everyoneHasToken) {
+    advanceButton.textContent =
+      "Select All Tokens to Continue";
+    return;
+  }
+
+  if (currentStage === "preflop") {
+    advanceButton.textContent = "Deal the Flop";
+  } else if (currentStage === "flop") {
+    advanceButton.textContent = "Deal the Turn";
+  } else if (currentStage === "turn") {
+    advanceButton.textContent = "Deal the River";
+  } else {
+    advanceButton.textContent = "Reveal Results";
+  }
+}
+
 function updateTokenDisplay() {
-  // First return every physical token to the shared pool.
   rankingTokens
     .slice()
     .sort(function (firstButton, secondButton) {
@@ -101,34 +337,19 @@ function updateTokenDisplay() {
     }
   });
 
-  const everyoneHasToken = playerTokens.every(
-    function (token) {
-      return token !== null;
-    }
-  );
-
-  advanceButton.disabled = !everyoneHasToken;
-
-  if (everyoneHasToken) {
-    advanceButton.textContent = "Deal the Flop";
-  } else {
-    advanceButton.textContent =
-      "Select All Tokens to Deal the Flop";
-  }
+  updateAdvanceButton();
 }
 
 function giveTokenToActivePlayer(tokenNumber) {
   const currentToken = playerTokens[activePlayerIndex];
   const currentOwnerIndex = findTokenOwner(tokenNumber);
 
-  // Tapping your own token returns it to the pool.
   if (currentOwnerIndex === activePlayerIndex) {
     playerTokens[activePlayerIndex] = null;
     updateTokenDisplay();
     return;
   }
 
-  // If someone else owns it, move or exchange it.
   if (currentOwnerIndex !== -1) {
     playerTokens[currentOwnerIndex] = currentToken;
   }
@@ -138,10 +359,33 @@ function giveTokenToActivePlayer(tokenNumber) {
   updateTokenDisplay();
 }
 
+function advanceGameStage() {
+  if (advanceButton.disabled) {
+    return;
+  }
+
+  if (currentStage === "preflop") {
+    currentStage = "flop";
+  } else if (currentStage === "flop") {
+    currentStage = "turn";
+  } else if (currentStage === "turn") {
+    currentStage = "river";
+  } else {
+    window.alert(
+      "The poker-hand evaluator comes next. " +
+      "It will determine whether this order is correct."
+    );
+
+    return;
+  }
+
+  renderCommunityCards();
+  updateAdvanceButton();
+}
+
 startGameButton.addEventListener("click", function () {
+  dealNewRound();
   showScreen(gameScreen);
-  activePlayerIndex = 0;
-  updateTokenDisplay();
 });
 
 howToPlayButton.addEventListener("click", function () {
@@ -171,15 +415,9 @@ rankingTokens.forEach(function (button) {
   });
 });
 
-advanceButton.addEventListener("click", function () {
-  if (advanceButton.disabled) {
-    return;
-  }
-
-  window.alert(
-    "All four players have selected a token. " +
-    "The flop will be added in the next checkpoint!"
-  );
-});
+advanceButton.addEventListener(
+  "click",
+  advanceGameStage
+);
 
 updateTokenDisplay();
