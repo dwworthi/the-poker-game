@@ -5,12 +5,12 @@
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1, viewport-fit=cover"
+    content="width=device-width, initial-scale=1"
   >
 
   <meta
     name="theme-color"
-    content="#123b2e"
+    content="#09271f"
   >
 
   <meta
@@ -24,23 +24,58 @@
   >
 
   <title>The Poker Game</title>
+
   <link rel="stylesheet" href="style.css?v=1">
 </head>
 
 <body>
   <main>
-    <h1>The Poker Game</h1>
-    <p>A cooperative poker prediction game</p>
+    <!-- Opening menu -->
+    <section id="menu-screen">
+      <h1>The Poker Game</h1>
+      <p>A cooperative poker prediction game</p>
 
-    <button type="button">
-      Start Local Game
-    </button>
+      <button id="start-game-button" type="button">
+        Start Local Game
+      </button>
 
-    <button type="button">
-      How to Play
-    </button>
+      <button id="how-to-play-button" type="button">
+        How to Play
+      </button>
 
-    <p>Developer Overview Mode</p>
+      <p>Developer Overview Mode</p>
+    </section>
+
+    <!-- Temporary local-game screen -->
+    <section id="game-screen" hidden>
+      <h1>Game Table</h1>
+      <p>The four-player testing table will go here.</p>
+
+      <button class="back-button" type="button">
+        Back to Menu
+      </button>
+    </section>
+
+    <!-- Temporary instructions screen -->
+    <section id="rules-screen" hidden>
+      <h1>How to Play</h1>
+
+      <p>
+        Work together to predict the final order of every
+        player’s poker hand.
+      </p>
+
+      <p>
+        Use ranking tokens to communicate without revealing
+        or describing your cards.
+      </p>
+
+      <button class="back-button" type="button">
+        Back to Menu
+      </button>
+    </section>
   </main>
+
+  <script src="game.js?v=1"></script>
 </body>
 </html>
