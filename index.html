@@ -22,7 +22,15 @@
 
   <title>The Poker Game</title>
 
-  <link rel="stylesheet" href="style.css?v=5">
+  <script>
+  window.gameCacheVersion = Date.now();
+
+  document.write(
+    '<link rel="stylesheet" href="style.css?v=' +
+    window.gameCacheVersion +
+    '">'
+  );
+</script>
 </head>
 
 <body>
@@ -228,6 +236,13 @@
     </section>
   </main>
 
-  <script src="game.js?v=3"></script>
+  <script>
+  const gameScript = document.createElement("script");
+
+  gameScript.src =
+    "game.js?v=" + window.gameCacheVersion;
+
+  document.body.appendChild(gameScript);
+</script>
 </body>
 </html>
