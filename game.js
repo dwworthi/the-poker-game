@@ -369,12 +369,22 @@ function renderTokenRequests() {
 
       requestText.className = "token-request-text";
 
-      if (requesters.length === 1) {
+            const shortNames = requesters.map(
+        function (name) {
+          if (name === "You") {
+            return "You";
+          }
+
+          return name.replace("Player ", "P");
+        }
+      );
+
+      if (shortNames.length === 1) {
         requestText.textContent =
-          requesters[0] + " wants this";
+          shortNames[0] + " wants";
       } else {
         requestText.textContent =
-          requesters.join(" + ") + " want this";
+          shortNames.join(" + ");
       }
 
       button.appendChild(requestText);
