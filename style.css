@@ -783,3 +783,32 @@ button:disabled {
 .your-hand .card {
   font-size: 1.25rem;
 }
+/* Keep player names above the table outline */
+.table-scene {
+  overflow: visible;
+}
+
+.player-seat {
+  z-index: 10;
+}
+
+.player-seat .seat-name {
+  position: relative;
+  z-index: 11;
+
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto 4px;
+  padding: 2px 5px;
+
+  border-radius: 5px;
+  color: var(--cream);
+  background: #0d4937;
+
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.player-seat.active-player .seat-name {
+  color: var(--gold);
+}
