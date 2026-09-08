@@ -23,14 +23,14 @@
   <title>The Poker Game</title>
 
   <script>
-  window.gameCacheVersion = Date.now();
+    window.gameCacheVersion = Date.now();
 
-  document.write(
-    '<link rel="stylesheet" href="style.css?v=' +
-    window.gameCacheVersion +
-    '">'
-  );
-</script>
+    document.write(
+      '<link rel="stylesheet" href="style.css?v=' +
+      window.gameCacheVersion +
+      '">'
+    );
+  </script>
 </head>
 
 <body>
@@ -38,6 +38,7 @@
     <!-- Opening menu -->
     <section id="menu-screen">
       <h1>The Poker Game</h1>
+
       <p class="subtitle">
         A cooperative poker prediction game
       </p>
@@ -50,28 +51,27 @@
         How to Play
       </button>
 
-      <p class="mode-label">Developer Overview Mode</p>
+      <p class="mode-label">
+        Multiplayer Layout Preview
+      </p>
     </section>
 
-    <!-- Local game -->
+    <!-- Game screen -->
     <section id="game-screen" hidden>
       <header class="game-header">
         <button
           class="back-button header-button"
           type="button"
-          aria-label="Return to menu"
         >
           ‹ Menu
         </button>
 
         <div>
           <h2>The Poker Game</h2>
-          <p>Pre-Flop</p>
+          <p id="stage-label">Pre-Flop</p>
         </div>
 
-        <div class="round-label">
-          Round 1
-        </div>
+        <div class="round-label">Round 1</div>
       </header>
 
       <div class="score-track">
@@ -86,122 +86,153 @@
         </div>
       </div>
 
-      <div class="community-area">
-        <p class="area-label">Community Cards</p>
+      <div
+        id="notification-banner"
+        class="notification-banner"
+        aria-live="polite"
+      >
+        Tap a player to simulate their choice
+      </div>
 
-        <div class="community-cards">
-          <div class="card card-slot">?</div>
-          <div class="card card-slot">?</div>
-          <div class="card card-slot">?</div>
-          <div class="card card-slot">?</div>
-          <div class="card card-slot">?</div>
+      <div class="table-scene">
+        <!-- Player across the table -->
+        <article
+          class="player-seat top-seat"
+          data-player="2"
+        >
+          <div class="seat-name">Player 3</div>
+
+          <div class="hidden-hand">
+            <div class="card card-back"></div>
+            <div class="card card-back"></div>
+          </div>
+
+          <div class="owned-token" data-token-space="2">
+            —
+          </div>
+        </article>
+
+        <!-- Player on the left -->
+        <article
+          class="player-seat left-seat"
+          data-player="1"
+        >
+          <div class="seat-name">Player 2</div>
+
+          <div class="hidden-hand">
+            <div class="card card-back"></div>
+            <div class="card card-back"></div>
+          </div>
+
+          <div class="owned-token" data-token-space="1">
+            —
+          </div>
+        </article>
+
+        <!-- Player on the right -->
+        <article
+          class="player-seat right-seat"
+          data-player="3"
+        >
+          <div class="seat-name">Player 4</div>
+
+          <div class="hidden-hand">
+            <div class="card card-back"></div>
+            <div class="card card-back"></div>
+          </div>
+
+          <div class="owned-token" data-token-space="3">
+            —
+          </div>
+        </article>
+
+        <!-- Center table -->
+        <div class="table-center">
+          <div class="community-area">
+            <p class="area-label">Community</p>
+
+            <div class="community-cards">
+              <div class="card card-slot">?</div>
+              <div class="card card-slot">?</div>
+              <div class="card card-slot">?</div>
+              <div class="card card-slot">?</div>
+              <div class="card card-slot">?</div>
+            </div>
+          </div>
+
+          <div class="token-area">
+            <div class="token-row">
+              <button
+                class="ranking-token"
+                type="button"
+              >
+                1
+              </button>
+
+              <button
+                class="ranking-token"
+                type="button"
+              >
+                2
+              </button>
+
+              <button
+                class="ranking-token"
+                type="button"
+              >
+                3
+              </button>
+
+              <button
+                class="ranking-token"
+                type="button"
+              >
+                4
+              </button>
+            </div>
+
+            <div class="token-meaning">
+              <span>Weakest</span>
+              <span>Strongest</span>
+            </div>
+          </div>
+
+          <div class="deck-pile" aria-hidden="true">
+            <div class="card card-back"></div>
+          </div>
         </div>
       </div>
 
-      <div class="player-list">
-        <article class="player-row">
-          <div class="player-info">
-            <strong>Player 1</strong>
-            <span>Waiting for token</span>
-          </div>
-
-          <div class="mini-hand">
-            <div class="card red-card">
-              <span>A</span>
-              <span>♥</span>
-            </div>
-
-            <div class="card">
-              <span>K</span>
-              <span>♠</span>
-            </div>
-          </div>
-
-          <div class="owned-token">—</div>
-        </article>
-
-        <article class="player-row">
-          <div class="player-info">
-            <strong>Player 2</strong>
-            <span>Waiting for token</span>
-          </div>
-
-          <div class="mini-hand">
-            <div class="card">
-              <span>8</span>
-              <span>♣</span>
-            </div>
-
-            <div class="card red-card">
-              <span>8</span>
-              <span>♦</span>
-            </div>
-          </div>
-
-          <div class="owned-token">—</div>
-        </article>
-
-        <article class="player-row">
-          <div class="player-info">
-            <strong>Player 3</strong>
-            <span>Waiting for token</span>
-          </div>
-
-          <div class="mini-hand">
-            <div class="card red-card">
-              <span>Q</span>
-              <span>♦</span>
-            </div>
-
-            <div class="card">
-              <span>4</span>
-              <span>♠</span>
-            </div>
-          </div>
-
-          <div class="owned-token">—</div>
-        </article>
-
-        <article class="player-row">
-          <div class="player-info">
-            <strong>Player 4</strong>
-            <span>Waiting for token</span>
-          </div>
-
-          <div class="mini-hand">
-            <div class="card">
-              <span>J</span>
-              <span>♣</span>
-            </div>
-
-            <div class="card red-card">
-              <span>10</span>
-              <span>♥</span>
-            </div>
-          </div>
-
-          <div class="owned-token">—</div>
-        </article>
-      </div>
-
-      <div class="token-area">
-        <p class="area-label">Ranking Tokens</p>
-
-        <div class="token-row">
-          <button class="ranking-token" type="button">1</button>
-          <button class="ranking-token" type="button">2</button>
-          <button class="ranking-token" type="button">3</button>
-          <button class="ranking-token" type="button">4</button>
+      <!-- Your seat -->
+      <article
+        class="you-seat active-player"
+        data-player="0"
+      >
+        <div class="your-label">
+          <strong>You</strong>
+          <span>Your private cards</span>
         </div>
 
-        <div class="token-meaning">
-          <span>Weakest</span>
-          <span>Strongest</span>
+        <div class="your-hand">
+          <div class="card"></div>
+          <div class="card"></div>
         </div>
-      </div>
 
-      <button class="advance-button" type="button" disabled>
-        Select All Tokens to Deal the Flop
+        <div class="owned-token" data-token-space="0">
+          —
+        </div>
+      </article>
+
+      <p class="test-instruction">
+        Local test: tap a player, then tap the token they want.
+      </p>
+
+      <button
+        class="advance-button"
+        type="button"
+        disabled
+      >
+        Select All Tokens to Continue
       </button>
     </section>
 
@@ -210,9 +241,7 @@
       <h1>How to Play</h1>
 
       <div class="rules-copy">
-        <p>
-          Every player receives two private cards.
-        </p>
+        <p>Every player receives two private cards.</p>
 
         <p>
           Work together to predict the final order of
@@ -220,13 +249,13 @@
         </p>
 
         <p>
-          Use ranking tokens to communicate without revealing
-          or directly describing your cards.
+          Use ranking tokens without revealing or directly
+          describing your cards.
         </p>
 
         <p>
-          After the river, the team succeeds if every player is
-          in the correct order from weakest to strongest.
+          After the river, the team succeeds if every player
+          is correctly ordered from weakest to strongest.
         </p>
       </div>
 
@@ -237,12 +266,12 @@
   </main>
 
   <script>
-  const gameScript = document.createElement("script");
+    const gameScript = document.createElement("script");
 
-  gameScript.src =
-    "game.js?v=" + window.gameCacheVersion;
+    gameScript.src =
+      "game.js?v=" + window.gameCacheVersion;
 
-  document.body.appendChild(gameScript);
-</script>
+    document.body.appendChild(gameScript);
+  </script>
 </body>
 </html>

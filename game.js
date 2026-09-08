@@ -14,8 +14,8 @@ const backButtons = document.querySelectorAll(
   ".back-button"
 );
 
-const playerRows = Array.from(
-  document.querySelectorAll(".player-row")
+const playerSeats = Array.from(
+  document.querySelectorAll("[data-player]")
 );
 
 const rankingTokens = Array.from(
@@ -23,52 +23,38 @@ const rankingTokens = Array.from(
 );
 
 const tokenRow = document.querySelector(".token-row");
+const advanceButton = document.querySelector(".advance-button");
+const stageLabel = document.querySelector("#stage-label");
 
-const advanceButton = document.querySelector(
-  ".advance-button"
-);
-
-const stageLabel = document.querySelector(
-  ".game-header p"
+const notificationBanner = document.querySelector(
+  "#notification-banner"
 );
 
 const communityCardElements = Array.from(
   document.querySelectorAll(".community-cards .card")
 );
 
+const yourCardElements = Array.from(
+  document.querySelectorAll(".your-hand .card")
+);
+
 const suits = [
-  {
-    symbol: "♠",
-    color: "black"
-  },
-  {
-    symbol: "♥",
-    color: "red"
-  },
-  {
-    symbol: "♦",
-    color: "red"
-  },
-  {
-    symbol: "♣",
-    color: "black"
-  }
+  { symbol: "♠", color: "black" },
+  { symbol: "♥", color: "red" },
+  { symbol: "♦", color: "red" },
+  { symbol: "♣", color: "black" }
 ];
 
 const ranks = [
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K",
-  "A"
+  "2", "3", "4", "5", "6", "7", "8",
+  "9", "10", "J", "Q", "K", "A"
+];
+
+const playerNames = [
+  "You",
+  "Player 2",
+  "Player 3",
+  "Player 4"
 ];
 
 let activePlayerIndex = 0;
@@ -76,6 +62,7 @@ let currentStage = "preflop";
 let deck = [];
 let playerHands = [];
 let communityCards = [];
+let notificationTimer;
 
 const playerTokens = [
   null,
@@ -90,6 +77,17 @@ function showScreen(screenToShow) {
   rulesScreen.hidden = true;
 
   screenToShow.hidden = false;
+}
+
+function showNotification(message) {
+  notificationBanner.textContent = message;
+
+  window.clearTimeout(notificationTimer);
+
+  notificationTimer = window.setTimeout(function () {
+    notificationBanner.textContent =
+      "Tap a player to simulate their choice";
+  }, 2500);
 }
 
 function createDeck() {
@@ -130,14 +128,8 @@ function shuffleDeck(cards) {
 function dealNewRound() {
   deck = shuffleDeck(createDeck());
 
-  playerHands = [
-    [],
-    [],
-    [],
-    []
-  ];
+  playerHands = [[], [], [], []];
 
-  // Deal one card to every player, twice.
   for (let cardNumber = 0; cardNumber < 2; cardNumber += 1) {
     for (
       let playerIndex = 0;
@@ -158,12 +150,15 @@ function dealNewRound() {
 
   currentStage = "preflop";
   activePlayerIndex = 0;
-
   playerTokens.fill(null);
 
   renderPlayerHands();
   renderCommunityCards();
   updateTokenDisplay();
+
+  showNotification(
+    "Cards dealt — tap a player to test their token choice"
+  );
 }
 
 function displayCard(cardElement, card) {
@@ -179,13 +174,15 @@ function displayCard(cardElement, card) {
   cardElement.appendChild(suitElement);
 
   cardElement.classList.remove("card-slot");
+  cardElement.classList.remove("card-back");
+
   cardElement.classList.toggle(
     "red-card",
     card.color === "red"
   );
 }
 
-function hideCard(cardElement) {
+function hideCommunityCard(cardElement) {
   cardElement.replaceChildren();
   cardElement.textContent = "?";
 
@@ -194,20 +191,14 @@ function hideCard(cardElement) {
 }
 
 function renderPlayerHands() {
-  playerRows.forEach(function (row, playerIndex) {
-    const cardElements = Array.from(
-      row.querySelectorAll(".mini-hand .card")
-    );
-
-    cardElements.forEach(function (
+  yourCardElements.forEach(function (
+    cardElement,
+    cardIndex
+  ) {
+    displayCard(
       cardElement,
-      cardIndex
-    ) {
-      displayCard(
-        cardElement,
-        playerHands[playerIndex][cardIndex]
-      );
-    });
+      playerHands[0][cardIndex]
+    );
   });
 }
 
@@ -241,7 +232,7 @@ function renderCommunityCards() {
         communityCards[cardIndex]
       );
     } else {
-      hideCard(cardElement);
+      hideCommunityCard(cardElement);
     }
   });
 
@@ -268,6 +259,12 @@ function getTokenButton(tokenNumber) {
   });
 }
 
+function getTokenSpace(playerIndex) {
+  return document.querySelector(
+    '[data-token-space="' + playerIndex + '"]'
+  );
+}
+
 function updateAdvanceButton() {
   const everyoneHasToken = playerTokens.every(
     function (token) {
@@ -280,10 +277,7 @@ function updateAdvanceButton() {
   if (!everyoneHasToken) {
     advanceButton.textContent =
       "Select All Tokens to Continue";
-    return;
-  }
-
-  if (currentStage === "preflop") {
+  } else if (currentStage === "preflop") {
     advanceButton.textContent = "Deal the Flop";
   } else if (currentStage === "flop") {
     advanceButton.textContent = "Deal the Turn";
@@ -307,54 +301,76 @@ function updateTokenDisplay() {
       tokenRow.appendChild(button);
     });
 
-  playerRows.forEach(function (row, playerIndex) {
-    const tokenSpace = row.querySelector(".owned-token");
-    const statusDisplay = row.querySelector(
-      ".player-info span"
-    );
+  playerSeats.forEach(function (seat) {
+    const playerIndex = Number(seat.dataset.player);
 
-    tokenSpace.replaceChildren();
-
-    row.classList.toggle(
+    seat.classList.toggle(
       "active-player",
       playerIndex === activePlayerIndex
     );
+  });
 
-    const playerToken = playerTokens[playerIndex];
+  playerTokens.forEach(function (token, playerIndex) {
+    const tokenSpace = getTokenSpace(playerIndex);
 
-    if (playerToken === null) {
+    tokenSpace.replaceChildren();
+
+    if (token === null) {
       tokenSpace.textContent = "—";
       tokenSpace.classList.remove("has-token");
-      statusDisplay.textContent = "Waiting for token";
     } else {
-      const tokenButton = getTokenButton(playerToken);
-
       tokenSpace.classList.add("has-token");
-      tokenSpace.appendChild(tokenButton);
-
-      statusDisplay.textContent =
-        "Holding token " + playerToken;
+      tokenSpace.appendChild(getTokenButton(token));
     }
   });
 
   updateAdvanceButton();
 }
 
-function giveTokenToActivePlayer(tokenNumber) {
+function chooseToken(tokenNumber) {
   const currentToken = playerTokens[activePlayerIndex];
   const currentOwnerIndex = findTokenOwner(tokenNumber);
 
   if (currentOwnerIndex === activePlayerIndex) {
     playerTokens[activePlayerIndex] = null;
+
+    showNotification(
+      playerNames[activePlayerIndex] +
+      " returns token " +
+      tokenNumber
+    );
+
     updateTokenDisplay();
     return;
   }
 
   if (currentOwnerIndex !== -1) {
-    playerTokens[currentOwnerIndex] = currentToken;
+    showNotification(
+      playerNames[activePlayerIndex] +
+      " wants token " +
+      tokenNumber +
+      " from " +
+      playerNames[currentOwnerIndex]
+    );
+
+    return;
   }
 
   playerTokens[activePlayerIndex] = tokenNumber;
+
+  showNotification(
+    playerNames[activePlayerIndex] +
+    " takes token " +
+    tokenNumber
+  );
+
+  if (currentToken !== null) {
+    showNotification(
+      playerNames[activePlayerIndex] +
+      " switches to token " +
+      tokenNumber
+    );
+  }
 
   updateTokenDisplay();
 }
@@ -366,14 +382,16 @@ function advanceGameStage() {
 
   if (currentStage === "preflop") {
     currentStage = "flop";
+    showNotification("The flop is revealed");
   } else if (currentStage === "flop") {
     currentStage = "turn";
+    showNotification("The turn is revealed");
   } else if (currentStage === "turn") {
     currentStage = "river";
+    showNotification("The river is revealed");
   } else {
     window.alert(
-      "The poker-hand evaluator comes next. " +
-      "It will determine whether this order is correct."
+      "The results screen will be added with the poker evaluator."
     );
 
     return;
@@ -384,8 +402,8 @@ function advanceGameStage() {
 }
 
 startGameButton.addEventListener("click", function () {
-  dealNewRound();
   showScreen(gameScreen);
+  dealNewRound();
 });
 
 howToPlayButton.addEventListener("click", function () {
@@ -398,10 +416,14 @@ backButtons.forEach(function (button) {
   });
 });
 
-playerRows.forEach(function (row, playerIndex) {
-  row.addEventListener("click", function () {
-    activePlayerIndex = playerIndex;
+playerSeats.forEach(function (seat) {
+  seat.addEventListener("click", function () {
+    activePlayerIndex = Number(seat.dataset.player);
     updateTokenDisplay();
+
+    showNotification(
+      "Testing as " + playerNames[activePlayerIndex]
+    );
   });
 });
 
@@ -409,9 +431,7 @@ rankingTokens.forEach(function (button) {
   button.addEventListener("click", function (event) {
     event.stopPropagation();
 
-    const tokenNumber = Number(button.textContent);
-
-    giveTokenToActivePlayer(tokenNumber);
+    chooseToken(Number(button.textContent));
   });
 });
 
