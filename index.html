@@ -266,12 +266,23 @@
   </main>
 
   <script>
-    const gameScript = document.createElement("script");
+  const evaluatorScript =
+    document.createElement("script");
+
+  evaluatorScript.src =
+    "poker.js?v=" + window.gameCacheVersion;
+
+  evaluatorScript.onload = function () {
+    const gameScript =
+      document.createElement("script");
 
     gameScript.src =
       "game.js?v=" + window.gameCacheVersion;
 
     document.body.appendChild(gameScript);
-  </script>
+  };
+
+  document.body.appendChild(evaluatorScript);
+</script>
 </body>
 </html>
