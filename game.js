@@ -22,8 +22,10 @@ const rankingTokens = Array.from(
   document.querySelectorAll(".ranking-token")
 );
 
-const tokenRow = document.querySelector(".token-row");
-const advanceButton = document.querySelector(".advance-button");
+const advanceButton = document.querySelector(
+  ".advance-button"
+);
+
 const stageLabel = document.querySelector("#stage-label");
 
 const notificationBanner = document.querySelector(
@@ -50,6 +52,29 @@ const ranks = [
   "9", "10", "J", "Q", "K", "A"
 ];
 
+const stages = [
+  {
+    name: "Pre-Flop",
+    color: "white",
+    visibleCards: 0
+  },
+  {
+    name: "Flop",
+    color: "yellow",
+    visibleCards: 3
+  },
+  {
+    name: "Turn",
+    color: "orange",
+    visibleCards: 4
+  },
+  {
+    name: "River",
+    color: "red",
+    visibleCards: 5
+  }
+];
+
 const playerNames = [
   "You",
   "Player 2",
@@ -58,17 +83,32 @@ const playerNames = [
 ];
 
 let activePlayerIndex = 0;
-let currentStage = "preflop";
+let currentStageIndex = 0;
 let deck = [];
 let playerHands = [];
 let communityCards = [];
 let notificationTimer;
+let roundFinished = false;
 
-const playerTokens = [
+const playerRequests = [
   null,
   null,
   null,
   null
+];
+
+const playerConfirmations = [
+  false,
+  false,
+  false,
+  false
+];
+
+const tokenHistory = [
+  [],
+  [],
+  [],
+  []
 ];
 
 function showScreen(screenToShow) {
@@ -87,7 +127,7 @@ function showNotification(message) {
   notificationTimer = window.setTimeout(function () {
     notificationBanner.textContent =
       "Tap a player to simulate their choice";
-  }, 2500);
+  }, 2600);
 }
 
 function createDeck() {
@@ -127,7 +167,6 @@ function shuffleDeck(cards) {
 
 function dealNewRound() {
   deck = shuffleDeck(createDeck());
-
   playerHands = [[], [], [], []];
 
   for (let cardNumber = 0; cardNumber < 2; cardNumber += 1) {
@@ -148,16 +187,23 @@ function dealNewRound() {
     deck.pop()
   ];
 
-  currentStage = "preflop";
   activePlayerIndex = 0;
-  playerTokens.fill(null);
+  currentStageIndex = 0;
+  roundFinished = false;
+
+  playerRequests.fill(null);
+  playerConfirmations.fill(false);
+
+  tokenHistory.forEach(function (history) {
+    history.length = 0;
+  });
 
   renderPlayerHands();
   renderCommunityCards();
-  updateTokenDisplay();
+  renderTokenSystem();
 
   showNotification(
-    "Cards dealt — tap a player to test their token choice"
+    "Cards dealt — choose the white tokens"
   );
 }
 
@@ -202,31 +248,14 @@ function renderPlayerHands() {
   });
 }
 
-function getVisibleCommunityCardCount() {
-  if (currentStage === "preflop") {
-    return 0;
-  }
-
-  if (currentStage === "flop") {
-    return 3;
-  }
-
-  if (currentStage === "turn") {
-    return 4;
-  }
-
-  return 5;
-}
-
 function renderCommunityCards() {
-  const visibleCardCount =
-    getVisibleCommunityCardCount();
+  const currentStage = stages[currentStageIndex];
 
   communityCardElements.forEach(function (
     cardElement,
     cardIndex
   ) {
-    if (cardIndex < visibleCardCount) {
+    if (cardIndex < currentStage.visibleCards) {
       displayCard(
         cardElement,
         communityCards[cardIndex]
@@ -236,27 +265,7 @@ function renderCommunityCards() {
     }
   });
 
-  if (currentStage === "preflop") {
-    stageLabel.textContent = "Pre-Flop";
-  } else if (currentStage === "flop") {
-    stageLabel.textContent = "Flop";
-  } else if (currentStage === "turn") {
-    stageLabel.textContent = "Turn";
-  } else {
-    stageLabel.textContent = "River";
-  }
-}
-
-function findTokenOwner(tokenNumber) {
-  return playerTokens.findIndex(function (token) {
-    return token === tokenNumber;
-  });
-}
-
-function getTokenButton(tokenNumber) {
-  return rankingTokens.find(function (button) {
-    return Number(button.textContent) === tokenNumber;
-  });
+  stageLabel.textContent = currentStage.name;
 }
 
 function getTokenSpace(playerIndex) {
@@ -265,140 +274,284 @@ function getTokenSpace(playerIndex) {
   );
 }
 
-function updateAdvanceButton() {
-  const everyoneHasToken = playerTokens.every(
-    function (token) {
-      return token !== null;
-    }
-  );
-
-  advanceButton.disabled = !everyoneHasToken;
-
-  if (!everyoneHasToken) {
-    advanceButton.textContent =
-      "Select All Tokens to Continue";
-  } else if (currentStage === "preflop") {
-    advanceButton.textContent = "Deal the Flop";
-  } else if (currentStage === "flop") {
-    advanceButton.textContent = "Deal the Turn";
-  } else if (currentStage === "turn") {
-    advanceButton.textContent = "Deal the River";
-  } else {
-    advanceButton.textContent = "Reveal Results";
+function requestsAreSettled() {
+  if (
+    playerRequests.some(function (request) {
+      return request === null;
+    })
+  ) {
+    return false;
   }
+
+  return new Set(playerRequests).size ===
+    playerRequests.length;
 }
 
-function updateTokenDisplay() {
-  rankingTokens
-    .slice()
-    .sort(function (firstButton, secondButton) {
-      return (
-        Number(firstButton.textContent) -
-        Number(secondButton.textContent)
+function resetConfirmations() {
+  playerConfirmations.fill(false);
+}
+
+function createHistoryToken(entry) {
+  const token = document.createElement("span");
+
+  token.className =
+    "history-token token-" + entry.color;
+
+  token.textContent = entry.number;
+  token.title =
+    entry.stage + ": Token " + entry.number;
+
+  return token;
+}
+
+function renderTokenHistory() {
+  tokenHistory.forEach(function (history, playerIndex) {
+    const tokenSpace = getTokenSpace(playerIndex);
+
+    tokenSpace.replaceChildren();
+
+    if (history.length === 0) {
+      tokenSpace.textContent = "—";
+      tokenSpace.classList.remove("has-history");
+      return;
+    }
+
+    tokenSpace.classList.add("has-history");
+
+    history.forEach(function (entry) {
+      tokenSpace.appendChild(
+        createHistoryToken(entry)
       );
-    })
-    .forEach(function (button) {
-      tokenRow.appendChild(button);
+    });
+  });
+}
+
+function renderTokenRequests() {
+  const currentColor =
+    stages[currentStageIndex].color;
+
+  rankingTokens.forEach(function (button) {
+    const tokenNumber = Number(
+      button.dataset.tokenNumber ||
+      button.textContent
+    );
+
+    button.dataset.tokenNumber = tokenNumber;
+
+    const requesters = [];
+
+    playerRequests.forEach(function (
+      requestedToken,
+      playerIndex
+    ) {
+      if (requestedToken === tokenNumber) {
+        requesters.push(playerNames[playerIndex]);
+      }
     });
 
+    button.replaceChildren();
+
+    const number = document.createElement("span");
+    number.className = "token-number";
+    number.textContent = tokenNumber;
+
+    button.appendChild(number);
+
+    button.className =
+      "ranking-token stage-token token-" +
+      currentColor;
+
+    if (requesters.length > 0) {
+      button.classList.add("wanted-token");
+
+      const requestText =
+        document.createElement("span");
+
+      requestText.className = "token-request-text";
+
+      if (requesters.length === 1) {
+        requestText.textContent =
+          requesters[0] + " wants this";
+      } else {
+        requestText.textContent =
+          requesters.join(" + ") + " want this";
+      }
+
+      button.appendChild(requestText);
+    }
+  });
+}
+
+function renderActivePlayer() {
   playerSeats.forEach(function (seat) {
-    const playerIndex = Number(seat.dataset.player);
+    const playerIndex = Number(
+      seat.dataset.player
+    );
 
     seat.classList.toggle(
       "active-player",
       playerIndex === activePlayerIndex
     );
   });
+}
 
-  playerTokens.forEach(function (token, playerIndex) {
-    const tokenSpace = getTokenSpace(playerIndex);
+function updateConfirmationButton() {
+  if (roundFinished) {
+    advanceButton.disabled = true;
+    advanceButton.textContent =
+      "Poker evaluator coming next";
+    return;
+  }
 
-    tokenSpace.replaceChildren();
+  if (!requestsAreSettled()) {
+    advanceButton.disabled = true;
 
-    if (token === null) {
-      tokenSpace.textContent = "—";
-      tokenSpace.classList.remove("has-token");
+    if (
+      playerRequests.some(function (request) {
+        return request === null;
+      })
+    ) {
+      advanceButton.textContent =
+        "Everyone Must Choose a Token";
     } else {
-      tokenSpace.classList.add("has-token");
-      tokenSpace.appendChild(getTokenButton(token));
+      advanceButton.textContent =
+        "Players Want the Same Token";
     }
-  });
 
-  updateAdvanceButton();
+    return;
+  }
+
+  if (playerConfirmations[activePlayerIndex]) {
+    advanceButton.disabled = true;
+    advanceButton.textContent =
+      playerNames[activePlayerIndex] +
+      " Confirmed ✓";
+    return;
+  }
+
+  advanceButton.disabled = false;
+  advanceButton.textContent =
+    playerNames[activePlayerIndex] +
+    ": I’m Good With This";
+}
+
+function renderTokenSystem() {
+  renderTokenHistory();
+  renderTokenRequests();
+  renderActivePlayer();
+  updateConfirmationButton();
 }
 
 function chooseToken(tokenNumber) {
-  const currentToken = playerTokens[activePlayerIndex];
-  const currentOwnerIndex = findTokenOwner(tokenNumber);
-
-  if (currentOwnerIndex === activePlayerIndex) {
-    playerTokens[activePlayerIndex] = null;
-
-    showNotification(
-      playerNames[activePlayerIndex] +
-      " returns token " +
-      tokenNumber
-    );
-
-    updateTokenDisplay();
+  if (roundFinished) {
     return;
   }
 
-  if (currentOwnerIndex !== -1) {
+  if (
+    playerRequests[activePlayerIndex] ===
+    tokenNumber
+  ) {
+    playerRequests[activePlayerIndex] = null;
+
+    showNotification(
+      playerNames[activePlayerIndex] +
+      " no longer wants token " +
+      tokenNumber
+    );
+  } else {
+    playerRequests[activePlayerIndex] =
+      tokenNumber;
+
     showNotification(
       playerNames[activePlayerIndex] +
       " wants token " +
-      tokenNumber +
-      " from " +
-      playerNames[currentOwnerIndex]
-    );
-
-    return;
-  }
-
-  playerTokens[activePlayerIndex] = tokenNumber;
-
-  showNotification(
-    playerNames[activePlayerIndex] +
-    " takes token " +
-    tokenNumber
-  );
-
-  if (currentToken !== null) {
-    showNotification(
-      playerNames[activePlayerIndex] +
-      " switches to token " +
       tokenNumber
     );
   }
 
-  updateTokenDisplay();
+  resetConfirmations();
+  renderTokenSystem();
 }
 
-function advanceGameStage() {
-  if (advanceButton.disabled) {
-    return;
-  }
+function everyoneConfirmed() {
+  return playerConfirmations.every(
+    function (isConfirmed) {
+      return isConfirmed;
+    }
+  );
+}
 
-  if (currentStage === "preflop") {
-    currentStage = "flop";
-    showNotification("The flop is revealed");
-  } else if (currentStage === "flop") {
-    currentStage = "turn";
-    showNotification("The turn is revealed");
-  } else if (currentStage === "turn") {
-    currentStage = "river";
-    showNotification("The river is revealed");
-  } else {
-    window.alert(
-      "The results screen will be added with the poker evaluator."
+function settleCurrentStage() {
+  const completedStage =
+    stages[currentStageIndex];
+
+  playerRequests.forEach(function (
+    tokenNumber,
+    playerIndex
+  ) {
+    tokenHistory[playerIndex].push({
+      number: tokenNumber,
+      color: completedStage.color,
+      stage: completedStage.name
+    });
+  });
+
+  if (currentStageIndex === stages.length - 1) {
+    roundFinished = true;
+
+    showNotification(
+      "Everyone confirmed — ready for results!"
     );
 
+    renderTokenSystem();
+
+    window.setTimeout(function () {
+      window.alert(
+        "All four colored tokens are saved beside each " +
+        "player. The poker evaluator and results screen " +
+        "come next."
+      );
+    }, 500);
+
     return;
   }
 
+  currentStageIndex += 1;
+
+  playerRequests.fill(null);
+  playerConfirmations.fill(false);
+
   renderCommunityCards();
-  updateAdvanceButton();
+  renderTokenSystem();
+
+  showNotification(
+    stages[currentStageIndex].name +
+    " revealed — choose the " +
+    stages[currentStageIndex].color +
+    " tokens"
+  );
+}
+
+function confirmCurrentPlayer() {
+  if (
+    !requestsAreSettled() ||
+    playerConfirmations[activePlayerIndex]
+  ) {
+    return;
+  }
+
+  playerConfirmations[activePlayerIndex] = true;
+
+  showNotification(
+    playerNames[activePlayerIndex] +
+    " is good with this arrangement"
+  );
+
+  if (everyoneConfirmed()) {
+    settleCurrentStage();
+  } else {
+    updateConfirmationButton();
+  }
 }
 
 startGameButton.addEventListener("click", function () {
@@ -418,26 +571,35 @@ backButtons.forEach(function (button) {
 
 playerSeats.forEach(function (seat) {
   seat.addEventListener("click", function () {
-    activePlayerIndex = Number(seat.dataset.player);
-    updateTokenDisplay();
+    activePlayerIndex = Number(
+      seat.dataset.player
+    );
+
+    renderActivePlayer();
+    updateConfirmationButton();
 
     showNotification(
-      "Testing as " + playerNames[activePlayerIndex]
+      "Testing as " +
+      playerNames[activePlayerIndex]
     );
   });
 });
 
 rankingTokens.forEach(function (button) {
-  button.addEventListener("click", function (event) {
+  button.addEventListener("click", function (
+    event
+  ) {
     event.stopPropagation();
 
-    chooseToken(Number(button.textContent));
+    chooseToken(
+      Number(button.dataset.tokenNumber)
+    );
   });
 });
 
 advanceButton.addEventListener(
   "click",
-  advanceGameStage
+  confirmCurrentPlayer
 );
 
-updateTokenDisplay();
+renderTokenSystem();

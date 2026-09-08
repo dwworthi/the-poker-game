@@ -568,3 +568,162 @@ button:disabled {
     height: 62px;
   }
 }
+/* Simplified player spaces */
+.player-seat {
+  width: 84px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+}
+
+.player-seat.active-player {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.player-seat.active-player .seat-name {
+  color: var(--gold);
+  text-shadow: 0 0 7px rgba(242, 201, 109, 0.8);
+}
+
+.hidden-hand .card {
+  width: 29px;
+  height: 41px;
+}
+
+.left-seat {
+  left: 8px;
+}
+
+.right-seat {
+  right: 8px;
+}
+
+.owned-token {
+  width: 78px;
+  min-height: 24px;
+  height: auto;
+  margin-top: 3px;
+
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+
+  border: 0;
+}
+
+.you-seat .owned-token {
+  width: 94px;
+  height: auto;
+  flex-wrap: wrap;
+}
+
+.history-token {
+  width: 21px;
+  height: 21px;
+
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 auto;
+
+  border: 2px solid rgba(0, 0, 0, 0.25);
+  border-radius: 50%;
+
+  color: #241b0b;
+  font-size: 0.66rem;
+  font-weight: 800;
+
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.28);
+}
+
+.token-white {
+  color: #222;
+  background: #f7f4e9;
+}
+
+.token-yellow {
+  color: #302300;
+  background: #f3d34f;
+}
+
+.token-orange {
+  color: #351800;
+  background: #ef8b32;
+}
+
+.token-red {
+  color: white;
+  background: #c63d48;
+}
+
+.token-area {
+  margin-top: 20px;
+  padding-top: 26px;
+  overflow: visible;
+}
+
+.token-row {
+  overflow: visible;
+}
+
+.stage-token {
+  position: relative;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.stage-token.wanted-token {
+  transform: translateY(-8px);
+
+  box-shadow:
+    0 9px 12px rgba(0, 0, 0, 0.38),
+    inset 0 0 0 3px rgba(111, 72, 5, 0.18);
+}
+
+.token-request-text {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+
+  width: 72px;
+  transform: translateX(-50%);
+
+  color: var(--cream);
+  font-size: 0.52rem;
+  font-weight: 700;
+  line-height: 1.05;
+  text-align: center;
+
+  text-shadow:
+    0 1px 3px #000,
+    0 1px 3px #000;
+
+  pointer-events: none;
+}
+
+.ranking-token.token-white {
+  color: #222;
+  background:
+    radial-gradient(circle, #ffffff, #ddd9cc 75%);
+}
+
+.ranking-token.token-yellow {
+  color: #302300;
+  background:
+    radial-gradient(circle, #ffe778, #d9ad20 75%);
+}
+
+.ranking-token.token-orange {
+  color: #351800;
+  background:
+    radial-gradient(circle, #ffad59, #d86918 75%);
+}
+
+.ranking-token.token-red {
+  color: white;
+  background:
+    radial-gradient(circle, #eb6670, #a7212d 75%);
+}
