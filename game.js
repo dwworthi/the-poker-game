@@ -89,6 +89,7 @@ let playerHands = [];
 let communityCards = [];
 let notificationTimer;
 let roundFinished = false;
+let isDealing = false;
 
 const playerRequests = [
   null,
@@ -563,10 +564,170 @@ function confirmCurrentPlayer() {
     updateConfirmationButton();
   }
 }
+function getOpeningDealTargets() {
+  const targets = [];
 
+  for (let cardIndex = 0; cardIndex < 2; cardIndex += 1) {
+    for (
+      let playerIndex = 0;
+      playerIndex < 4;
+      playerIndex += 1
+    ) {
+      if (playerIndex === 0) {
+        targets.push(yourCardElements[cardIndex]);
+      } else {
+        const playerSeat = document.querySelector(
+          '[data-player="' + playerIndex + '"]'
+        );
+
+        const playerCards = Array.from(
+          playerSeat.querySelectorAll(
+            ".hidden-hand .card"
+          )
+        );
+
+        targets.push(playerCards[cardIndex]);
+      }
+    }
+  }
+
+  return targets;
+}
+
+function prepareOpeningDeal() {
+  const targets = getOpeningDealTargets();
+
+  targets.forEach(function (target) {
+    target.style.visibility = "hidden";
+  });
+}
+
+function wait(milliseconds) {
+  return new Promise(function (resolve) {
+    window.setTimeout(resolve, milliseconds);
+  });
+}
+
+function sendCardToTarget(deckCard, target) {
+  return new Promise(function (resolve) {
+    const deckPosition =
+      deckCard.getBoundingClientRect();
+
+    const targetPosition =
+      target.getBoundingClientRect();
+
+    const flyingCard =
+      document.createElement("div");
+
+    flyingCard.className =
+      "card card-back flying-card";
+
+    flyingCard.style.left =
+      deckPosition.left + "px";
+
+    flyingCard.style.top =
+      deckPosition.top + "px";
+
+    flyingCard.style.width =
+      deckPosition.width + "px";
+
+    flyingCard.style.height =
+      deckPosition.height + "px";
+
+    document.body.appendChild(flyingCard);
+
+    const moveX =
+      targetPosition.left - deckPosition.left;
+
+    const moveY =
+      targetPosition.top - deckPosition.top;
+
+    const growX =
+      targetPosition.width /
+      deckPosition.width;
+
+    const growY =
+      targetPosition.height /
+      deckPosition.height;
+
+    const animation = flyingCard.animate(
+      [
+        {
+          transform:
+            "translate(0, 0) scale(1)",
+          opacity: 1
+        },
+        {
+          transform:
+            "translate(" +
+            moveX +
+            "px, " +
+            moveY +
+            "px) scale(" +
+            growX +
+            ", " +
+            growY +
+            ")",
+          opacity: 1
+        }
+      ],
+      {
+        duration: 320,
+        easing: "ease-out",
+        fill: "forwards"
+      }
+    );
+
+    animation.onfinish = function () {
+      flyingCard.remove();
+      target.style.visibility = "visible";
+      target.classList.add("card-arrival");
+
+      window.setTimeout(function () {
+        target.classList.remove("card-arrival");
+      }, 300);
+
+      resolve();
+    };
+  });
+}
+
+async function animateOpeningDeal() {
+  if (isDealing) {
+    return;
+  }
+
+  isDealing = true;
+  gameScreen.classList.add("dealing");
+
+  const deckCard = document.querySelector(
+    ".deck-pile .card"
+  );
+
+  const targets = getOpeningDealTargets();
+
+  showNotification("Dealing cards…");
+
+  for (const target of targets) {
+    await sendCardToTarget(deckCard, target);
+    await wait(65);
+  }
+
+  gameScreen.classList.remove("dealing");
+  isDealing = false;
+
+  showNotification(
+    "Cards dealt — choose the white tokens"
+  );
+}
 startGameButton.addEventListener("click", function () {
-  showScreen(gameScreen);
   dealNewRound();
+  prepareOpeningDeal();
+  showScreen(gameScreen);
+
+  window.requestAnimationFrame(function () {
+    animateOpeningDeal();
+  });
 });
 
 howToPlayButton.addEventListener("click", function () {
