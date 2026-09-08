@@ -841,3 +841,89 @@ button:disabled {
 #game-screen.dealing .advance-button {
   pointer-events: none;
 }
+/* One-by-one showdown results */
+.results-active .token-area {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.result-card-flip {
+  animation: result-card-flip 450ms ease-out;
+}
+
+@keyframes result-card-flip {
+  0% {
+    transform: rotateY(90deg);
+  }
+
+  100% {
+    transform: rotateY(0);
+  }
+}
+
+.hand-result {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  z-index: 30;
+
+  width: 135px;
+  padding: 5px 6px;
+  transform: translateX(-50%);
+
+  border: 1px solid rgba(242, 201, 109, 0.5);
+  border-radius: 7px;
+
+  color: var(--cream);
+  font-size: 0.52rem;
+  line-height: 1.15;
+  text-align: center;
+
+  background: rgba(3, 25, 18, 0.96);
+  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.35);
+}
+
+.hand-result strong,
+.hand-result span {
+  display: block;
+}
+
+.hand-result .comparison {
+  margin-top: 3px;
+  font-weight: 800;
+}
+
+.correct-result {
+  color: #6fec96;
+}
+
+.wrong-result {
+  color: #ff707c;
+}
+
+.pending-result {
+  color: var(--gold);
+}
+
+.left-seat .hand-result {
+  left: 0;
+  transform: none;
+}
+
+.right-seat .hand-result {
+  right: 0;
+  left: auto;
+  transform: none;
+}
+
+.you-seat .hand-result {
+  top: auto;
+  right: 5px;
+  bottom: calc(100% + 3px);
+  left: auto;
+  transform: none;
+}
+
+.hidden-hand .card:not(.card-back) {
+  font-size: 0.78rem;
+}

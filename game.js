@@ -90,6 +90,10 @@ let communityCards = [];
 let notificationTimer;
 let roundFinished = false;
 let isDealing = false;
+let evaluatedHands = [];
+let revealOrder = [];
+let revealedCount = 0;
+let teamOrderCorrect = true;
 
 const playerRequests = [
   null,
@@ -191,6 +195,20 @@ function dealNewRound() {
   activePlayerIndex = 0;
   currentStageIndex = 0;
   roundFinished = false;
+  evaluatedHands = [];
+  revealOrder = [];
+  revealedCount = 0;
+  teamOrderCorrect = true;
+  gameScreen.classList.remove("results-active");
+
+  document.querySelectorAll(".hand-result").forEach(function (result) {
+    result.remove();
+  });
+
+  document.querySelectorAll(".hidden-hand .card").forEach(function (card) {
+    card.replaceChildren();
+    card.className = "card card-back";
+  });
 
   playerRequests.fill(null);
   playerConfirmations.fill(false);
@@ -408,9 +426,19 @@ function renderActivePlayer() {
 
 function updateConfirmationButton() {
   if (roundFinished) {
-    advanceButton.disabled = true;
-    advanceButton.textContent =
-      "Poker evaluator coming next";
+    if (revealedCount < revealOrder.length) {
+      const nextPlayer = revealOrder[revealedCount];
+      const nextToken = playerRequests[nextPlayer];
+
+      advanceButton.disabled = false;
+      advanceButton.textContent =
+        "Reveal Token " + nextToken + " — " + playerNames[nextPlayer];
+    } else {
+      advanceButton.disabled = true;
+      advanceButton.textContent = teamOrderCorrect
+        ? "Correct Order ✓"
+        : "Order Incorrect ✕";
+    }
     return;
   }
 
@@ -509,21 +537,8 @@ function settleCurrentStage() {
 
   if (currentStageIndex === stages.length - 1) {
     roundFinished = true;
-
-    showNotification(
-      "Everyone confirmed — ready for results!"
-    );
-
+    prepareResults();
     renderTokenSystem();
-
-    window.setTimeout(function () {
-      window.alert(
-        "All four colored tokens are saved beside each " +
-        "player. The poker evaluator and results screen " +
-        "come next."
-      );
-    }, 500);
-
     return;
   }
 
@@ -564,6 +579,147 @@ function confirmCurrentPlayer() {
     updateConfirmationButton();
   }
 }
+
+function getPlayerSeat(playerIndex) {
+  return document.querySelector(
+    '[data-player="' + playerIndex + '"]'
+  );
+}
+
+function prepareResults() {
+  evaluatedHands = playerHands.map(function (hand) {
+    return PokerEvaluator.evaluateSeven(
+      hand.concat(communityCards)
+    );
+  });
+
+  revealOrder = [0, 1, 2, 3].sort(function (first, second) {
+    return playerRequests[first] - playerRequests[second];
+  });
+
+  revealedCount = 0;
+  teamOrderCorrect = true;
+  stageLabel.textContent = "Showdown";
+  gameScreen.classList.add("results-active");
+
+  showNotification(
+    "Final tokens locked — reveal from lowest to highest"
+  );
+}
+
+function revealPrivateCards(playerIndex) {
+  if (playerIndex === 0) return;
+
+  const seat = getPlayerSeat(playerIndex);
+  const cardElements = Array.from(
+    seat.querySelectorAll(".hidden-hand .card")
+  );
+
+  cardElements.forEach(function (cardElement, cardIndex) {
+    displayCard(cardElement, playerHands[playerIndex][cardIndex]);
+    cardElement.classList.add("result-card-flip");
+  });
+}
+
+function addHandResult(playerIndex, result, message, statusClass) {
+  const seat = getPlayerSeat(playerIndex);
+  let resultBox = seat.querySelector(".hand-result");
+
+  if (!resultBox) {
+    resultBox = document.createElement("div");
+    resultBox.className = "hand-result";
+    seat.appendChild(resultBox);
+  }
+
+  resultBox.replaceChildren();
+
+  const description = document.createElement("strong");
+  description.textContent = result.description;
+
+  const comparison = document.createElement("span");
+  comparison.className = "comparison " + statusClass;
+  comparison.textContent = message;
+
+  resultBox.appendChild(description);
+  resultBox.appendChild(comparison);
+}
+
+function updateFirstResultStatus(message, statusClass) {
+  const firstPlayer = revealOrder[0];
+  const box = getPlayerSeat(firstPlayer).querySelector(".hand-result");
+
+  if (!box) return;
+
+  const comparison = box.querySelector(".comparison");
+  comparison.className = "comparison " + statusClass;
+  comparison.textContent = message;
+}
+
+function revealNextHand() {
+  if (!roundFinished || revealedCount >= revealOrder.length) return;
+
+  const playerIndex = revealOrder[revealedCount];
+  const result = evaluatedHands[playerIndex];
+  const tokenNumber = playerRequests[playerIndex];
+
+  revealPrivateCards(playerIndex);
+
+  if (revealedCount === 0) {
+    addHandResult(
+      playerIndex,
+      result,
+      "Waiting for the next hand…",
+      "pending-result"
+    );
+  } else {
+    const previousPlayer = revealOrder[revealedCount - 1];
+    const comparison = PokerEvaluator.compareScores(
+      result.score,
+      evaluatedHands[previousPlayer].score
+    );
+
+    if (comparison > 0) {
+      addHandResult(playerIndex, result, "✓ Correctly higher", "correct-result");
+
+      if (revealedCount === 1) {
+        updateFirstResultStatus("✓ Correctly lower", "correct-result");
+      }
+    } else if (comparison === 0) {
+      addHandResult(playerIndex, result, "🤝 Tie — accepted", "correct-result");
+
+      if (revealedCount === 1) {
+        updateFirstResultStatus("🤝 Tie — accepted", "correct-result");
+      }
+    } else {
+      teamOrderCorrect = false;
+      addHandResult(playerIndex, result, "✕ Out of order", "wrong-result");
+
+      if (revealedCount === 1) {
+        updateFirstResultStatus("✕ Out of order", "wrong-result");
+      }
+    }
+  }
+
+  revealedCount += 1;
+
+  showNotification(
+    "Token " + tokenNumber + ": " + playerNames[playerIndex] +
+    " — " + result.description
+  );
+
+  updateConfirmationButton();
+
+  if (revealedCount === revealOrder.length) {
+    window.setTimeout(function () {
+      showNotification(
+        teamOrderCorrect
+          ? "✓ Success! Every hand was correctly ordered."
+          : "✕ Round failed — at least one hand was out of order."
+      );
+    }, 700);
+  }
+}
+
 function getOpeningDealTargets() {
   const targets = [];
 
@@ -768,9 +924,12 @@ rankingTokens.forEach(function (button) {
   });
 });
 
-advanceButton.addEventListener(
-  "click",
-  confirmCurrentPlayer
-);
+advanceButton.addEventListener("click", function () {
+  if (roundFinished) {
+    revealNextHand();
+  } else {
+    confirmCurrentPlayer();
+  }
+});
 
 renderTokenSystem();
