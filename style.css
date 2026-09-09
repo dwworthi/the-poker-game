@@ -1337,3 +1337,17 @@ button:disabled {
   top: auto;
   bottom: calc(100% + 2px);
 }
+.online-status {
+  margin: 9px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.online-status.online-ready {
+  color: #6fec96;
+}
+
+.online-status.online-error {
+  color: #ff7b85;
+}
