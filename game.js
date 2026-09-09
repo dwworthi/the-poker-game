@@ -237,7 +237,13 @@ function dealNewRound() {
   teamOrderCorrect = true;
   roundScored = false;
 
-  gameScreen.classList.remove("results-active");
+    gameScreen.classList.remove("results-active");
+
+  document
+    .querySelectorAll(".reveal-minimized")
+    .forEach(function (seat) {
+      seat.classList.remove("reveal-minimized");
+    });
 
   document
     .querySelectorAll(".hand-result")
@@ -843,7 +849,37 @@ function updateFirstResultStatus(
 
   comparison.textContent = message;
 }
+function minimizeRevealedPlayer(playerIndex) {
+  const seat = getPlayerSeat(playerIndex);
+  const resultBox = seat.querySelector(".hand-result");
 
+  if (!resultBox) {
+    return;
+  }
+
+  const comparison =
+    resultBox.querySelector(".comparison");
+
+  const wasWrong =
+    comparison.classList.contains("wrong-result");
+
+  resultBox.replaceChildren();
+
+  const smallResult =
+    document.createElement("span");
+
+  smallResult.className = wasWrong
+    ? "minimized-status wrong-result"
+    : "minimized-status correct-result";
+
+  smallResult.textContent = wasWrong
+    ? "✕"
+    : "✓";
+
+  resultBox.appendChild(smallResult);
+  resultBox.classList.add("minimized-result");
+  seat.classList.add("reveal-minimized");
+}
 function revealNextHand() {
   if (
     !roundFinished ||
@@ -927,6 +963,15 @@ function revealNextHand() {
         );
       }
     }
+  }
+
+    if (revealedCount > 0) {
+    const previousPlayer =
+      revealOrder[revealedCount - 1];
+
+    minimizeRevealedPlayer(
+      previousPlayer
+    );
   }
 
   revealedCount += 1;

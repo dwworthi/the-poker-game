@@ -1293,3 +1293,47 @@ button:disabled {
   height: 18px;
   font-size: 0.56rem;
 }
+/* Collapse previous showdown results */
+.hand-result.minimized-result {
+  width: 30px;
+  min-height: 30px;
+  padding: 0;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+}
+
+.minimized-status {
+  font-size: 1.25rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.results-active
+.player-seat.reveal-minimized
+.hidden-hand {
+  gap: 4px;
+}
+
+.results-active
+.player-seat.reveal-minimized
+.hidden-hand
+.card {
+  margin: 0;
+  transform: none;
+}
+
+.results-active
+.player-seat.reveal-minimized
+.hand-result {
+  top: calc(100% + 2px);
+}
+
+.results-active
+.you-seat.reveal-minimized
+.hand-result {
+  top: auto;
+  bottom: calc(100% + 2px);
+}
