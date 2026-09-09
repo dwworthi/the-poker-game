@@ -56,6 +56,82 @@
       </p>
     </section>
 
+        <!-- Player-count setup -->
+    <section id="setup-screen" hidden>
+      <h1>Choose Players</h1>
+
+      <p class="subtitle">
+        Preview how everyone will fit around the table
+      </p>
+
+      <div class="player-count-buttons">
+        <button type="button" data-player-count="3">
+          3 Players
+        </button>
+
+        <button
+          type="button"
+          data-player-count="4"
+          class="selected-count"
+        >
+          4 Players
+        </button>
+
+        <button type="button" data-player-count="5">
+          5 Players
+        </button>
+
+        <button type="button" data-player-count="6">
+          6 Players
+        </button>
+      </div>
+
+      <div class="layout-preview">
+        <div
+          id="preview-opponents"
+          class="preview-opponents count-4"
+        ></div>
+
+        <div class="preview-center">
+          <div class="preview-community">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <div class="preview-tokens">
+            <span>1</span>
+            <span>2</span>
+            <span>3</span>
+            <span>4</span>
+          </div>
+        </div>
+
+        <div class="preview-you">
+          <strong>You</strong>
+
+          <div>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <p id="preview-description">
+        Four players: three opponents and you
+      </p>
+
+      <button id="continue-game-button" type="button">
+        Start 4-Player Game
+      </button>
+
+      <button class="back-button" type="button">
+        Back to Menu
+      </button>
+    </section>
+
     <!-- Game screen -->
     <section id="game-screen" hidden>
       <header class="game-header">

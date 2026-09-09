@@ -1,6 +1,23 @@
 const menuScreen = document.querySelector("#menu-screen");
 const gameScreen = document.querySelector("#game-screen");
 const rulesScreen = document.querySelector("#rules-screen");
+const setupScreen = document.querySelector("#setup-screen");
+
+const playerCountButtons = Array.from(
+  document.querySelectorAll("[data-player-count]")
+);
+
+const previewOpponents = document.querySelector(
+  "#preview-opponents"
+);
+
+const previewDescription = document.querySelector(
+  "#preview-description"
+);
+
+const continueGameButton = document.querySelector(
+  "#continue-game-button"
+);
 
 const startGameButton = document.querySelector(
   "#start-game-button"
@@ -134,6 +151,7 @@ function showScreen(screenToShow) {
   menuScreen.hidden = true;
   gameScreen.hidden = true;
   rulesScreen.hidden = true;
+  setupScreen.hidden = true;
 
   screenToShow.hidden = false;
 }
@@ -1205,7 +1223,83 @@ async function animateOpeningDeal() {
   );
 }
 
+function renderPlayerCountPreview(playerCount) {
+  previewOpponents.replaceChildren();
+
+  previewOpponents.className =
+    "preview-opponents count-" + playerCount;
+
+  for (
+    let playerNumber = 2;
+    playerNumber <= playerCount;
+    playerNumber += 1
+  ) {
+    const player = document.createElement("div");
+    player.className = "preview-player";
+
+    player.innerHTML =
+      '<div class="preview-player-name">Player ' +
+      playerNumber +
+      '</div>' +
+      '<div class="preview-card-pair">' +
+      '<span class="preview-card"></span>' +
+      '<span class="preview-card"></span>' +
+      '</div>' +
+      '<div class="preview-token-space"></div>';
+
+    previewOpponents.appendChild(player);
+  }
+
+  previewDescription.textContent =
+    playerCount +
+    " players: " +
+    (playerCount - 1) +
+    " opponents and you";
+
+  document
+    .querySelectorAll(".preview-tokens span")
+    .forEach(function (token, tokenIndex) {
+      token.hidden =
+        tokenIndex >= playerCount;
+    });
+
+  playerCountButtons.forEach(function (button) {
+    button.classList.toggle(
+      "selected-count",
+      Number(button.dataset.playerCount) ===
+        playerCount
+    );
+  });
+
+  if (playerCount === 4) {
+    continueGameButton.disabled = false;
+    continueGameButton.textContent =
+      "Start 4-Player Game";
+  } else {
+    continueGameButton.disabled = true;
+    continueGameButton.textContent =
+      playerCount +
+      "-Player Logic Coming Next";
+  }
+}
+
 startGameButton.addEventListener(
+  "click",
+  function () {
+    renderPlayerCountPreview(4);
+    showScreen(setupScreen);
+  }
+);
+
+playerCountButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    renderPlayerCountPreview(
+      Number(button.dataset.playerCount)
+    );
+  });
+});
+
+continueGameButton.addEventListener(
   "click",
   function () {
     startNewGame();
