@@ -1164,3 +1164,132 @@ button:disabled {
   color: var(--cream);
   background: rgba(255, 255, 255, 0.1);
 }
+/* Dynamic circular player positions */
+#setup-screen .layout-preview {
+  display: none;
+}
+
+.opponent-seat {
+  width: 74px;
+  z-index: 15;
+}
+
+.player-count-5 .opponent-seat,
+.player-count-6 .opponent-seat {
+  width: 65px;
+}
+
+.player-count-5 .hidden-hand .card,
+.player-count-6 .hidden-hand .card {
+  width: 23px;
+  height: 34px;
+}
+
+.player-count-3 .player-position-1 {
+  top: 20px;
+  left: 55px;
+}
+
+.player-count-3 .player-position-2 {
+  top: 20px;
+  right: 55px;
+}
+
+.player-count-4 .player-position-1 {
+  top: 70px;
+  left: -2px;
+}
+
+.player-count-4 .player-position-2 {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-count-4 .player-position-3 {
+  top: 70px;
+  right: -2px;
+}
+
+.player-count-5 .player-position-1 {
+  top: 75px;
+  left: -3px;
+}
+
+.player-count-5 .player-position-2 {
+  top: -4px;
+  left: 62px;
+}
+
+.player-count-5 .player-position-3 {
+  top: -4px;
+  right: 62px;
+}
+
+.player-count-5 .player-position-4 {
+  top: 75px;
+  right: -3px;
+}
+
+.player-count-6 .player-position-1 {
+  top: 88px;
+  left: -4px;
+}
+
+.player-count-6 .player-position-2 {
+  top: 4px;
+  left: 36px;
+}
+
+.player-count-6 .player-position-3 {
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.player-count-6 .player-position-4 {
+  top: 4px;
+  right: 36px;
+}
+
+.player-count-6 .player-position-5 {
+  top: 88px;
+  right: -4px;
+}
+
+.player-count-3 .table-center,
+.player-count-4 .table-center {
+  top: 122px;
+}
+
+.player-count-5 .table-center {
+  top: 135px;
+}
+
+.player-count-6 .table-center {
+  top: 145px;
+}
+
+.player-count-5 .ranking-token,
+.player-count-6 .ranking-token {
+  width: 36px;
+  min-height: 36px;
+  font-size: 0.9rem;
+}
+
+.player-count-6 .token-row {
+  gap: 4px;
+}
+
+.player-count-5 .token-request-text,
+.player-count-6 .token-request-text {
+  width: 40px;
+  font-size: 0.43rem;
+}
+
+.player-count-5 .history-token,
+.player-count-6 .history-token {
+  width: 18px;
+  height: 18px;
+  font-size: 0.56rem;
+}

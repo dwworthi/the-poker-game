@@ -349,14 +349,27 @@
     "poker.js?v=" + window.gameCacheVersion;
 
   evaluatorScript.onload = function () {
-    const gameScript =
+  const gameScript =
+    document.createElement("script");
+
+  gameScript.src =
+    "game.js?v=" + window.gameCacheVersion;
+
+  gameScript.onload = function () {
+    const playersScript =
       document.createElement("script");
 
-    gameScript.src =
-      "game.js?v=" + window.gameCacheVersion;
+    playersScript.src =
+      "dynamic-players.js?v=" +
+      window.gameCacheVersion;
 
-    document.body.appendChild(gameScript);
+    document.body.appendChild(
+      playersScript
+    );
   };
+
+  document.body.appendChild(gameScript);
+};
 
   document.body.appendChild(evaluatorScript);
 </script>
