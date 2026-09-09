@@ -1,5 +1,5 @@
 const firebaseConfig = {
-  apiKey: "AIzaSyDogW1Qiy3VFBUN-yQU8aY6zOTMmgW",
+  apiKey: "AIzaSyDZjpKpTkFy1lCeAFED47chk9MRx_yxh7I",
   authDomain: "the-poker-game.firebaseapp.com",
   databaseURL:
     "https://the-poker-game-default-rtdb.firebaseio.com/",
