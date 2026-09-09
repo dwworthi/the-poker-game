@@ -27,6 +27,15 @@ const advanceButton = document.querySelector(
 );
 
 const stageLabel = document.querySelector("#stage-label");
+const roundLabel = document.querySelector(".round-label");
+
+const successScore = document.querySelector(
+  ".success-score strong"
+);
+
+const failureScore = document.querySelector(
+  ".failure-score strong"
+);
 
 const notificationBanner = document.querySelector(
   "#notification-banner"
@@ -94,6 +103,11 @@ let evaluatedHands = [];
 let revealOrder = [];
 let revealedCount = 0;
 let teamOrderCorrect = true;
+let successfulRounds = 0;
+let failedRounds = 0;
+let roundNumber = 1;
+let gameOver = false;
+let roundScored = false;
 
 const playerRequests = [
   null,
@@ -174,7 +188,11 @@ function dealNewRound() {
   deck = shuffleDeck(createDeck());
   playerHands = [[], [], [], []];
 
-  for (let cardNumber = 0; cardNumber < 2; cardNumber += 1) {
+  for (
+    let cardNumber = 0;
+    cardNumber < 2;
+    cardNumber += 1
+  ) {
     for (
       let playerIndex = 0;
       playerIndex < playerHands.length;
@@ -199,16 +217,22 @@ function dealNewRound() {
   revealOrder = [];
   revealedCount = 0;
   teamOrderCorrect = true;
+  roundScored = false;
+
   gameScreen.classList.remove("results-active");
 
-  document.querySelectorAll(".hand-result").forEach(function (result) {
-    result.remove();
-  });
+  document
+    .querySelectorAll(".hand-result")
+    .forEach(function (result) {
+      result.remove();
+    });
 
-  document.querySelectorAll(".hidden-hand .card").forEach(function (card) {
-    card.replaceChildren();
-    card.className = "card card-back";
-  });
+  document
+    .querySelectorAll(".hidden-hand .card")
+    .forEach(function (card) {
+      card.replaceChildren();
+      card.className = "card card-back";
+    });
 
   playerRequests.fill(null);
   playerConfirmations.fill(false);
@@ -226,11 +250,25 @@ function dealNewRound() {
   );
 }
 
+function updateScoreDisplay() {
+  successScore.textContent =
+    successfulRounds + " / 3";
+
+  failureScore.textContent =
+    failedRounds + " / 3";
+
+  roundLabel.textContent =
+    "Round " + roundNumber;
+}
+
 function displayCard(cardElement, card) {
   cardElement.replaceChildren();
 
-  const rankElement = document.createElement("span");
-  const suitElement = document.createElement("span");
+  const rankElement =
+    document.createElement("span");
+
+  const suitElement =
+    document.createElement("span");
 
   rankElement.textContent = card.rank;
   suitElement.textContent = card.suit;
@@ -268,13 +306,17 @@ function renderPlayerHands() {
 }
 
 function renderCommunityCards() {
-  const currentStage = stages[currentStageIndex];
+  const currentStage =
+    stages[currentStageIndex];
 
   communityCardElements.forEach(function (
     cardElement,
     cardIndex
   ) {
-    if (cardIndex < currentStage.visibleCards) {
+    if (
+      cardIndex <
+      currentStage.visibleCards
+    ) {
       displayCard(
         cardElement,
         communityCards[cardIndex]
@@ -284,12 +326,15 @@ function renderCommunityCards() {
     }
   });
 
-  stageLabel.textContent = currentStage.name;
+  stageLabel.textContent =
+    currentStage.name;
 }
 
 function getTokenSpace(playerIndex) {
   return document.querySelector(
-    '[data-token-space="' + playerIndex + '"]'
+    '[data-token-space="' +
+    playerIndex +
+    '"]'
   );
 }
 
@@ -302,8 +347,10 @@ function requestsAreSettled() {
     return false;
   }
 
-  return new Set(playerRequests).size ===
-    playerRequests.length;
+  return (
+    new Set(playerRequests).size ===
+    playerRequests.length
+  );
 }
 
 function resetConfirmations() {
@@ -311,31 +358,46 @@ function resetConfirmations() {
 }
 
 function createHistoryToken(entry) {
-  const token = document.createElement("span");
+  const token =
+    document.createElement("span");
 
   token.className =
-    "history-token token-" + entry.color;
+    "history-token token-" +
+    entry.color;
 
   token.textContent = entry.number;
+
   token.title =
-    entry.stage + ": Token " + entry.number;
+    entry.stage +
+    ": Token " +
+    entry.number;
 
   return token;
 }
 
 function renderTokenHistory() {
-  tokenHistory.forEach(function (history, playerIndex) {
-    const tokenSpace = getTokenSpace(playerIndex);
+  tokenHistory.forEach(function (
+    history,
+    playerIndex
+  ) {
+    const tokenSpace =
+      getTokenSpace(playerIndex);
 
     tokenSpace.replaceChildren();
 
     if (history.length === 0) {
       tokenSpace.textContent = "—";
-      tokenSpace.classList.remove("has-history");
+
+      tokenSpace.classList.remove(
+        "has-history"
+      );
+
       return;
     }
 
-    tokenSpace.classList.add("has-history");
+    tokenSpace.classList.add(
+      "has-history"
+    );
 
     history.forEach(function (entry) {
       tokenSpace.appendChild(
@@ -355,7 +417,8 @@ function renderTokenRequests() {
       button.textContent
     );
 
-    button.dataset.tokenNumber = tokenNumber;
+    button.dataset.tokenNumber =
+      tokenNumber;
 
     const requesters = [];
 
@@ -363,14 +426,20 @@ function renderTokenRequests() {
       requestedToken,
       playerIndex
     ) {
-      if (requestedToken === tokenNumber) {
-        requesters.push(playerNames[playerIndex]);
+      if (
+        requestedToken === tokenNumber
+      ) {
+        requesters.push(
+          playerNames[playerIndex]
+        );
       }
     });
 
     button.replaceChildren();
 
-    const number = document.createElement("span");
+    const number =
+      document.createElement("span");
+
     number.className = "token-number";
     number.textContent = tokenNumber;
 
@@ -381,22 +450,27 @@ function renderTokenRequests() {
       currentColor;
 
     if (requesters.length > 0) {
-      button.classList.add("wanted-token");
+      button.classList.add(
+        "wanted-token"
+      );
 
       const requestText =
         document.createElement("span");
 
-      requestText.className = "token-request-text";
+      requestText.className =
+        "token-request-text";
 
-            const shortNames = requesters.map(
-        function (name) {
+      const shortNames =
+        requesters.map(function (name) {
           if (name === "You") {
             return "You";
           }
 
-          return name.replace("Player ", "P");
-        }
-      );
+          return name.replace(
+            "Player ",
+            "P"
+          );
+        });
 
       if (shortNames.length === 1) {
         requestText.textContent =
@@ -426,19 +500,33 @@ function renderActivePlayer() {
 
 function updateConfirmationButton() {
   if (roundFinished) {
-    if (revealedCount < revealOrder.length) {
-      const nextPlayer = revealOrder[revealedCount];
-      const nextToken = playerRequests[nextPlayer];
+    if (
+      revealedCount <
+      revealOrder.length
+    ) {
+      const nextPlayer =
+        revealOrder[revealedCount];
+
+      const nextToken =
+        playerRequests[nextPlayer];
 
       advanceButton.disabled = false;
+
       advanceButton.textContent =
-        "Reveal Token " + nextToken + " — " + playerNames[nextPlayer];
+        "Reveal Token " +
+        nextToken +
+        " — " +
+        playerNames[nextPlayer];
+    } else if (gameOver) {
+      advanceButton.disabled = false;
+      advanceButton.textContent =
+        "Play Again";
     } else {
-      advanceButton.disabled = true;
-      advanceButton.textContent = teamOrderCorrect
-        ? "Correct Order ✓"
-        : "Order Incorrect ✕";
+      advanceButton.disabled = false;
+      advanceButton.textContent =
+        "Next Round";
     }
+
     return;
   }
 
@@ -446,9 +534,11 @@ function updateConfirmationButton() {
     advanceButton.disabled = true;
 
     if (
-      playerRequests.some(function (request) {
-        return request === null;
-      })
+      playerRequests.some(
+        function (request) {
+          return request === null;
+        }
+      )
     ) {
       advanceButton.textContent =
         "Everyone Must Choose a Token";
@@ -460,15 +550,22 @@ function updateConfirmationButton() {
     return;
   }
 
-  if (playerConfirmations[activePlayerIndex]) {
+  if (
+    playerConfirmations[
+      activePlayerIndex
+    ]
+  ) {
     advanceButton.disabled = true;
+
     advanceButton.textContent =
       playerNames[activePlayerIndex] +
       " Confirmed ✓";
+
     return;
   }
 
   advanceButton.disabled = false;
+
   advanceButton.textContent =
     playerNames[activePlayerIndex] +
     ": I’m Good With This";
@@ -487,10 +584,13 @@ function chooseToken(tokenNumber) {
   }
 
   if (
-    playerRequests[activePlayerIndex] ===
-    tokenNumber
+    playerRequests[
+      activePlayerIndex
+    ] === tokenNumber
   ) {
-    playerRequests[activePlayerIndex] = null;
+    playerRequests[
+      activePlayerIndex
+    ] = null;
 
     showNotification(
       playerNames[activePlayerIndex] +
@@ -498,8 +598,9 @@ function chooseToken(tokenNumber) {
       tokenNumber
     );
   } else {
-    playerRequests[activePlayerIndex] =
-      tokenNumber;
+    playerRequests[
+      activePlayerIndex
+    ] = tokenNumber;
 
     showNotification(
       playerNames[activePlayerIndex] +
@@ -535,7 +636,10 @@ function settleCurrentStage() {
     });
   });
 
-  if (currentStageIndex === stages.length - 1) {
+  if (
+    currentStageIndex ===
+    stages.length - 1
+  ) {
     roundFinished = true;
     prepareResults();
     renderTokenSystem();
@@ -561,12 +665,16 @@ function settleCurrentStage() {
 function confirmCurrentPlayer() {
   if (
     !requestsAreSettled() ||
-    playerConfirmations[activePlayerIndex]
+    playerConfirmations[
+      activePlayerIndex
+    ]
   ) {
     return;
   }
 
-  playerConfirmations[activePlayerIndex] = true;
+  playerConfirmations[
+    activePlayerIndex
+  ] = true;
 
   showNotification(
     playerNames[activePlayerIndex] +
@@ -582,25 +690,41 @@ function confirmCurrentPlayer() {
 
 function getPlayerSeat(playerIndex) {
   return document.querySelector(
-    '[data-player="' + playerIndex + '"]'
+    '[data-player="' +
+    playerIndex +
+    '"]'
   );
 }
 
 function prepareResults() {
-  evaluatedHands = playerHands.map(function (hand) {
-    return PokerEvaluator.evaluateSeven(
-      hand.concat(communityCards)
-    );
-  });
+  evaluatedHands = playerHands.map(
+    function (hand) {
+      return PokerEvaluator.evaluateSeven(
+        hand.concat(communityCards)
+      );
+    }
+  );
 
-  revealOrder = [0, 1, 2, 3].sort(function (first, second) {
-    return playerRequests[first] - playerRequests[second];
+  revealOrder = [
+    0,
+    1,
+    2,
+    3
+  ].sort(function (first, second) {
+    return (
+      playerRequests[first] -
+      playerRequests[second]
+    );
   });
 
   revealedCount = 0;
   teamOrderCorrect = true;
+
   stageLabel.textContent = "Showdown";
-  gameScreen.classList.add("results-active");
+
+  gameScreen.classList.add(
+    "results-active"
+  );
 
   showNotification(
     "Final tokens locked — reveal from lowest to highest"
@@ -608,59 +732,116 @@ function prepareResults() {
 }
 
 function revealPrivateCards(playerIndex) {
-  if (playerIndex === 0) return;
+  if (playerIndex === 0) {
+    return;
+  }
 
-  const seat = getPlayerSeat(playerIndex);
+  const seat =
+    getPlayerSeat(playerIndex);
+
   const cardElements = Array.from(
-    seat.querySelectorAll(".hidden-hand .card")
+    seat.querySelectorAll(
+      ".hidden-hand .card"
+    )
   );
 
-  cardElements.forEach(function (cardElement, cardIndex) {
-    displayCard(cardElement, playerHands[playerIndex][cardIndex]);
-    cardElement.classList.add("result-card-flip");
+  cardElements.forEach(function (
+    cardElement,
+    cardIndex
+  ) {
+    displayCard(
+      cardElement,
+      playerHands[playerIndex][cardIndex]
+    );
+
+    cardElement.classList.add(
+      "result-card-flip"
+    );
   });
 }
 
-function addHandResult(playerIndex, result, message, statusClass) {
-  const seat = getPlayerSeat(playerIndex);
-  let resultBox = seat.querySelector(".hand-result");
+function addHandResult(
+  playerIndex,
+  result,
+  message,
+  statusClass
+) {
+  const seat =
+    getPlayerSeat(playerIndex);
+
+  let resultBox =
+    seat.querySelector(".hand-result");
 
   if (!resultBox) {
-    resultBox = document.createElement("div");
-    resultBox.className = "hand-result";
+    resultBox =
+      document.createElement("div");
+
+    resultBox.className =
+      "hand-result";
+
     seat.appendChild(resultBox);
   }
 
   resultBox.replaceChildren();
 
-  const description = document.createElement("strong");
-  description.textContent = result.description;
+  const description =
+    document.createElement("strong");
 
-  const comparison = document.createElement("span");
-  comparison.className = "comparison " + statusClass;
+  description.textContent =
+    result.description;
+
+  const comparison =
+    document.createElement("span");
+
+  comparison.className =
+    "comparison " + statusClass;
+
   comparison.textContent = message;
 
   resultBox.appendChild(description);
   resultBox.appendChild(comparison);
 }
 
-function updateFirstResultStatus(message, statusClass) {
-  const firstPlayer = revealOrder[0];
-  const box = getPlayerSeat(firstPlayer).querySelector(".hand-result");
+function updateFirstResultStatus(
+  message,
+  statusClass
+) {
+  const firstPlayer =
+    revealOrder[0];
 
-  if (!box) return;
+  const box = getPlayerSeat(
+    firstPlayer
+  ).querySelector(".hand-result");
 
-  const comparison = box.querySelector(".comparison");
-  comparison.className = "comparison " + statusClass;
+  if (!box) {
+    return;
+  }
+
+  const comparison =
+    box.querySelector(".comparison");
+
+  comparison.className =
+    "comparison " + statusClass;
+
   comparison.textContent = message;
 }
 
 function revealNextHand() {
-  if (!roundFinished || revealedCount >= revealOrder.length) return;
+  if (
+    !roundFinished ||
+    revealedCount >= revealOrder.length
+  ) {
+    return;
+  }
 
-  const playerIndex = revealOrder[revealedCount];
-  const result = evaluatedHands[playerIndex];
-  const tokenNumber = playerRequests[playerIndex];
+  const playerIndex =
+    revealOrder[revealedCount];
+
+  const result =
+    evaluatedHands[playerIndex];
+
+  const tokenNumber =
+    playerRequests[playerIndex];
 
   revealPrivateCards(playerIndex);
 
@@ -672,30 +853,60 @@ function revealNextHand() {
       "pending-result"
     );
   } else {
-    const previousPlayer = revealOrder[revealedCount - 1];
-    const comparison = PokerEvaluator.compareScores(
-      result.score,
-      evaluatedHands[previousPlayer].score
-    );
+    const previousPlayer =
+      revealOrder[revealedCount - 1];
+
+    const comparison =
+      PokerEvaluator.compareScores(
+        result.score,
+        evaluatedHands[
+          previousPlayer
+        ].score
+      );
 
     if (comparison > 0) {
-      addHandResult(playerIndex, result, "✓ Correctly higher", "correct-result");
+      addHandResult(
+        playerIndex,
+        result,
+        "✓ Correctly higher",
+        "correct-result"
+      );
 
       if (revealedCount === 1) {
-        updateFirstResultStatus("✓ Correctly lower", "correct-result");
+        updateFirstResultStatus(
+          "✓ Correctly lower",
+          "correct-result"
+        );
       }
     } else if (comparison === 0) {
-      addHandResult(playerIndex, result, "🤝 Tie — accepted", "correct-result");
+      addHandResult(
+        playerIndex,
+        result,
+        "🤝 Tie — accepted",
+        "correct-result"
+      );
 
       if (revealedCount === 1) {
-        updateFirstResultStatus("🤝 Tie — accepted", "correct-result");
+        updateFirstResultStatus(
+          "🤝 Tie — accepted",
+          "correct-result"
+        );
       }
     } else {
       teamOrderCorrect = false;
-      addHandResult(playerIndex, result, "✕ Out of order", "wrong-result");
+
+      addHandResult(
+        playerIndex,
+        result,
+        "✕ Out of order",
+        "wrong-result"
+      );
 
       if (revealedCount === 1) {
-        updateFirstResultStatus("✕ Out of order", "wrong-result");
+        updateFirstResultStatus(
+          "✕ Out of order",
+          "wrong-result"
+        );
       }
     }
   }
@@ -703,46 +914,127 @@ function revealNextHand() {
   revealedCount += 1;
 
   showNotification(
-    "Token " + tokenNumber + ": " + playerNames[playerIndex] +
-    " — " + result.description
+    "Token " +
+    tokenNumber +
+    ": " +
+    playerNames[playerIndex] +
+    " — " +
+    result.description
   );
 
   updateConfirmationButton();
 
-  if (revealedCount === revealOrder.length) {
-    window.setTimeout(function () {
+  if (
+    revealedCount ===
+    revealOrder.length
+  ) {
+    finishRound();
+  }
+}
+
+function finishRound() {
+  if (roundScored) {
+    return;
+  }
+
+  roundScored = true;
+
+  if (teamOrderCorrect) {
+    successfulRounds += 1;
+  } else {
+    failedRounds += 1;
+  }
+
+  gameOver =
+    successfulRounds >= 3 ||
+    failedRounds >= 3;
+
+  updateScoreDisplay();
+  updateConfirmationButton();
+
+  window.setTimeout(function () {
+    if (successfulRounds >= 3) {
+      showNotification(
+        "🏆 Your team won The Poker Game!"
+      );
+    } else if (failedRounds >= 3) {
+      showNotification(
+        "Three failed rounds — game over"
+      );
+    } else {
       showNotification(
         teamOrderCorrect
           ? "✓ Success! Every hand was correctly ordered."
           : "✕ Round failed — at least one hand was out of order."
       );
-    }, 700);
-  }
+    }
+  }, 500);
+}
+
+function beginRoundWithAnimation() {
+  dealNewRound();
+  prepareOpeningDeal();
+  showScreen(gameScreen);
+
+  window.requestAnimationFrame(
+    function () {
+      animateOpeningDeal();
+    }
+  );
+}
+
+function startNewGame() {
+  successfulRounds = 0;
+  failedRounds = 0;
+  roundNumber = 1;
+  gameOver = false;
+
+  updateScoreDisplay();
+  beginRoundWithAnimation();
+}
+
+function startNextRound() {
+  roundNumber += 1;
+
+  updateScoreDisplay();
+  beginRoundWithAnimation();
 }
 
 function getOpeningDealTargets() {
   const targets = [];
 
-  for (let cardIndex = 0; cardIndex < 2; cardIndex += 1) {
+  for (
+    let cardIndex = 0;
+    cardIndex < 2;
+    cardIndex += 1
+  ) {
     for (
       let playerIndex = 0;
       playerIndex < 4;
       playerIndex += 1
     ) {
       if (playerIndex === 0) {
-        targets.push(yourCardElements[cardIndex]);
+        targets.push(
+          yourCardElements[cardIndex]
+        );
       } else {
-        const playerSeat = document.querySelector(
-          '[data-player="' + playerIndex + '"]'
-        );
+        const playerSeat =
+          document.querySelector(
+            '[data-player="' +
+            playerIndex +
+            '"]'
+          );
 
-        const playerCards = Array.from(
-          playerSeat.querySelectorAll(
-            ".hidden-hand .card"
-          )
-        );
+        const playerCards =
+          Array.from(
+            playerSeat.querySelectorAll(
+              ".hidden-hand .card"
+            )
+          );
 
-        targets.push(playerCards[cardIndex]);
+        targets.push(
+          playerCards[cardIndex]
+        );
       }
     }
   }
@@ -751,20 +1043,28 @@ function getOpeningDealTargets() {
 }
 
 function prepareOpeningDeal() {
-  const targets = getOpeningDealTargets();
+  const targets =
+    getOpeningDealTargets();
 
   targets.forEach(function (target) {
-    target.style.visibility = "hidden";
+    target.style.visibility =
+      "hidden";
   });
 }
 
 function wait(milliseconds) {
   return new Promise(function (resolve) {
-    window.setTimeout(resolve, milliseconds);
+    window.setTimeout(
+      resolve,
+      milliseconds
+    );
   });
 }
 
-function sendCardToTarget(deckCard, target) {
+function sendCardToTarget(
+  deckCard,
+  target
+) {
   return new Promise(function (resolve) {
     const deckPosition =
       deckCard.getBoundingClientRect();
@@ -790,13 +1090,17 @@ function sendCardToTarget(deckCard, target) {
     flyingCard.style.height =
       deckPosition.height + "px";
 
-    document.body.appendChild(flyingCard);
+    document.body.appendChild(
+      flyingCard
+    );
 
     const moveX =
-      targetPosition.left - deckPosition.left;
+      targetPosition.left -
+      deckPosition.left;
 
     const moveY =
-      targetPosition.top - deckPosition.top;
+      targetPosition.top -
+      deckPosition.top;
 
     const growX =
       targetPosition.width /
@@ -806,45 +1110,57 @@ function sendCardToTarget(deckCard, target) {
       targetPosition.height /
       deckPosition.height;
 
-    const animation = flyingCard.animate(
-      [
+    const animation =
+      flyingCard.animate(
+        [
+          {
+            transform:
+              "translate(0, 0) scale(1)",
+            opacity: 1
+          },
+          {
+            transform:
+              "translate(" +
+              moveX +
+              "px, " +
+              moveY +
+              "px) scale(" +
+              growX +
+              ", " +
+              growY +
+              ")",
+            opacity: 1
+          }
+        ],
         {
-          transform:
-            "translate(0, 0) scale(1)",
-          opacity: 1
-        },
-        {
-          transform:
-            "translate(" +
-            moveX +
-            "px, " +
-            moveY +
-            "px) scale(" +
-            growX +
-            ", " +
-            growY +
-            ")",
-          opacity: 1
+          duration: 320,
+          easing: "ease-out",
+          fill: "forwards"
         }
-      ],
-      {
-        duration: 320,
-        easing: "ease-out",
-        fill: "forwards"
-      }
-    );
+      );
 
-    animation.onfinish = function () {
-      flyingCard.remove();
-      target.style.visibility = "visible";
-      target.classList.add("card-arrival");
+    animation.onfinish =
+      function () {
+        flyingCard.remove();
 
-      window.setTimeout(function () {
-        target.classList.remove("card-arrival");
-      }, 300);
+        target.style.visibility =
+          "visible";
 
-      resolve();
-    };
+        target.classList.add(
+          "card-arrival"
+        );
+
+        window.setTimeout(
+          function () {
+            target.classList.remove(
+              "card-arrival"
+            );
+          },
+          300
+        );
+
+        resolve();
+      };
   });
 }
 
@@ -854,82 +1170,117 @@ async function animateOpeningDeal() {
   }
 
   isDealing = true;
-  gameScreen.classList.add("dealing");
 
-  const deckCard = document.querySelector(
-    ".deck-pile .card"
+  gameScreen.classList.add(
+    "dealing"
   );
 
-  const targets = getOpeningDealTargets();
+  const deckCard =
+    document.querySelector(
+      ".deck-pile .card"
+    );
+
+  const targets =
+    getOpeningDealTargets();
 
   showNotification("Dealing cards…");
 
   for (const target of targets) {
-    await sendCardToTarget(deckCard, target);
+    await sendCardToTarget(
+      deckCard,
+      target
+    );
+
     await wait(65);
   }
 
-  gameScreen.classList.remove("dealing");
+  gameScreen.classList.remove(
+    "dealing"
+  );
+
   isDealing = false;
 
   showNotification(
     "Cards dealt — choose the white tokens"
   );
 }
-startGameButton.addEventListener("click", function () {
-  dealNewRound();
-  prepareOpeningDeal();
-  showScreen(gameScreen);
 
-  window.requestAnimationFrame(function () {
-    animateOpeningDeal();
-  });
-});
+startGameButton.addEventListener(
+  "click",
+  function () {
+    startNewGame();
+  }
+);
 
-howToPlayButton.addEventListener("click", function () {
-  showScreen(rulesScreen);
-});
+howToPlayButton.addEventListener(
+  "click",
+  function () {
+    showScreen(rulesScreen);
+  }
+);
 
 backButtons.forEach(function (button) {
-  button.addEventListener("click", function () {
-    showScreen(menuScreen);
-  });
+  button.addEventListener(
+    "click",
+    function () {
+      showScreen(menuScreen);
+    }
+  );
 });
 
 playerSeats.forEach(function (seat) {
-  seat.addEventListener("click", function () {
-    activePlayerIndex = Number(
-      seat.dataset.player
-    );
+  seat.addEventListener(
+    "click",
+    function () {
+      activePlayerIndex = Number(
+        seat.dataset.player
+      );
 
-    renderActivePlayer();
-    updateConfirmationButton();
+      renderActivePlayer();
+      updateConfirmationButton();
 
-    showNotification(
-      "Testing as " +
-      playerNames[activePlayerIndex]
-    );
-  });
+      showNotification(
+        "Testing as " +
+        playerNames[activePlayerIndex]
+      );
+    }
+  );
 });
 
 rankingTokens.forEach(function (button) {
-  button.addEventListener("click", function (
-    event
-  ) {
-    event.stopPropagation();
+  button.addEventListener(
+    "click",
+    function (event) {
+      event.stopPropagation();
 
-    chooseToken(
-      Number(button.dataset.tokenNumber)
-    );
-  });
+      chooseToken(
+        Number(
+          button.dataset.tokenNumber
+        )
+      );
+    }
+  );
 });
 
-advanceButton.addEventListener("click", function () {
-  if (roundFinished) {
-    revealNextHand();
-  } else {
-    confirmCurrentPlayer();
+advanceButton.addEventListener(
+  "click",
+  function () {
+    if (roundFinished) {
+      if (
+        revealedCount <
+        revealOrder.length
+      ) {
+        revealNextHand();
+      } else if (gameOver) {
+        startNewGame();
+      } else {
+        startNextRound();
+      }
+    } else {
+      confirmCurrentPlayer();
+    }
   }
-});
+);
 
+updateScoreDisplay();
 renderTokenSystem();
