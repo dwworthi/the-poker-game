@@ -514,6 +514,19 @@
       "dynamic-players.js?v=" +
       window.gameCacheVersion;
 
+        playersScript.onload = function () {
+      const onlineGameplayScript =
+        document.createElement("script");
+
+      onlineGameplayScript.src =
+        "online-gameplay.js?v=" +
+        window.gameCacheVersion;
+
+      document.body.appendChild(
+        onlineGameplayScript
+      );
+    };
+
     document.body.appendChild(
       playersScript
     );

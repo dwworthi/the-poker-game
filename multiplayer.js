@@ -458,10 +458,12 @@ async function openOnlineGame() {
       handData.card2
     ];
 
-    window.PokerDynamicPlayers
+        window.PokerDynamicPlayers
       .startOnlineOpening(
         localNames,
-        ownHand
+        ownHand,
+        localOrder,
+        savedOrder
       );
   } catch (error) {
     console.error(

@@ -1,7 +1,8 @@
 (function () {
   "use strict";
 
-  let selectedPlayerCount = 4;
+    let selectedPlayerCount = 4;
+  let onlinePlayerUids = [];
 
   const countButtons = Array.from(
     document.querySelectorAll("[data-player-count]")
@@ -159,10 +160,12 @@
     button.addEventListener("click", function (event) {
       event.stopPropagation();
 
-      if (window.pokerOnlineMode) {
-        showNotification(
-          "Online token selection comes next"
-        );
+            if (window.pokerOnlineMode) {
+        if (window.PokerOnlineActions) {
+          window.PokerOnlineActions.chooseToken(
+            Number(button.dataset.tokenNumber)
+          );
+        }
 
         return;
       }
@@ -443,10 +446,13 @@
     true
   );
 
-    function startOnlineOpening(
+      function startOnlineOpening(
     onlinePlayerNames,
-    ownHand
+    ownHand,
+    localPlayerUids
   ) {
+    onlinePlayerUids =
+      localPlayerUids.slice();
     window.pokerOnlineMode = true;
 
     selectedPlayerCount =
@@ -556,9 +562,159 @@
     });
   }
 
+    function applyOnlineState(state) {
+    const stageKeys = [
+      "preflop",
+      "flop",
+      "turn",
+      "river"
+    ];
+
+    const newStageIndex =
+      stageKeys.indexOf(state.stage);
+
+    if (newStageIndex !== -1) {
+      currentStageIndex = newStageIndex;
+    }
+
+    playerRequests.forEach(function (
+      unused,
+      playerIndex
+    ) {
+      const uid =
+        onlinePlayerUids[playerIndex];
+
+      const request =
+        state.currentRequests[uid];
+
+      playerRequests[playerIndex] =
+        typeof request === "number"
+          ? request
+          : null;
+
+      playerConfirmations[playerIndex] =
+        state.confirmations[uid] ===
+        state.signature;
+    });
+
+    tokenHistory.forEach(function (
+      history,
+      playerIndex
+    ) {
+      history.length = 0;
+
+      const uid =
+        onlinePlayerUids[playerIndex];
+
+      for (
+        let stageIndex = 0;
+        stageIndex < currentStageIndex;
+        stageIndex += 1
+      ) {
+        const stageKey =
+          stageKeys[stageIndex];
+
+        const stageRequests =
+          state.allRequests[stageKey] || {};
+
+        if (
+          typeof stageRequests[uid] ===
+          "number"
+        ) {
+          history.push({
+            number: stageRequests[uid],
+            color: stages[stageIndex].color,
+            stage: stages[stageIndex].name
+          });
+        }
+      }
+    });
+
+    communityCards = [
+      null,
+      null,
+      null,
+      null,
+      null
+    ];
+
+    state.visibleCommunity.forEach(
+      function (card, cardIndex) {
+        communityCards[cardIndex] = card;
+      }
+    );
+
+    renderCommunityCards();
+    renderTokenSystem();
+
+    const everyoneChose =
+      playerRequests.every(function (request) {
+        return request !== null;
+      });
+
+    const choicesAreUnique =
+      new Set(playerRequests).size ===
+      playerRequests.length;
+
+    const ownConfirmed =
+      playerConfirmations[0];
+
+    const allConfirmed =
+      playerConfirmations.every(
+        function (confirmed) {
+          return confirmed;
+        }
+      );
+
+    if (!everyoneChose) {
+      advanceButton.disabled = true;
+      advanceButton.textContent =
+        "Everyone Must Choose a Token";
+    } else if (!choicesAreUnique) {
+      advanceButton.disabled = true;
+      advanceButton.textContent =
+        "Players Want the Same Token";
+    } else if (allConfirmed) {
+      advanceButton.disabled = true;
+
+      advanceButton.textContent =
+        state.stage === "river"
+          ? "Showdown Coming Next"
+          : "Dealing Next Stage…";
+    } else if (ownConfirmed) {
+      advanceButton.disabled = true;
+      advanceButton.textContent =
+        "You Confirmed ✓";
+    } else {
+      advanceButton.disabled = false;
+      advanceButton.textContent =
+        "I’m Good With This";
+    }
+  }
+
+  advanceButton.addEventListener(
+    "click",
+    function (event) {
+      if (!window.pokerOnlineMode) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      if (window.PokerOnlineActions) {
+        window.PokerOnlineActions.confirm();
+      }
+    },
+    true
+  );
+
   window.PokerDynamicPlayers = {
     startOnlineOpening:
-      startOnlineOpening
+      startOnlineOpening,
+
+    applyOnlineState:
+      applyOnlineState
   };
 
   updatePlayerSelection(4);
