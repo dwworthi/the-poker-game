@@ -148,10 +148,11 @@ const tokenHistory = [
 ];
 
 function showScreen(screenToShow) {
-  menuScreen.hidden = true;
-  gameScreen.hidden = true;
-  rulesScreen.hidden = true;
-  setupScreen.hidden = true;
+  document
+    .querySelectorAll("main > section")
+    .forEach(function (screen) {
+      screen.hidden = true;
+    });
 
   screenToShow.hidden = false;
 }
