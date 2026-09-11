@@ -30,6 +30,8 @@ let currentRoomCode = null;
 let currentRoomRef = null;
 let currentPlayersRef = null;
 let currentRoomHostUid = null;
+let currentLobbyPlayers = {};
+let onlineGameOpened = false;
 
 function showOnlineStatus(message, isReady) {
   let status = document.querySelector(
@@ -93,7 +95,10 @@ function setMessage(
 }
 
 function cleanPlayerName(name) {
-  return name.trim().replace(/\s+/g, " ").slice(0, 18);
+  return name
+    .trim()
+    .replace(/\s+/g, " ")
+    .slice(0, 18);
 }
 
 function cleanRoomCode(code) {
@@ -110,18 +115,66 @@ function createRoomCode() {
   let code = "";
 
   for (
-    let characterNumber = 0;
-    characterNumber < 5;
-    characterNumber += 1
+    let index = 0;
+    index < 5;
+    index += 1
   ) {
-    const randomIndex = Math.floor(
-      Math.random() * characters.length
-    );
-
-    code += characters[randomIndex];
+    code += characters[
+      Math.floor(
+        Math.random() *
+        characters.length
+      )
+    ];
   }
 
   return code;
+}
+
+function createOnlineDeck() {
+  const deckSuits = [
+    { symbol: "♠", color: "black" },
+    { symbol: "♥", color: "red" },
+    { symbol: "♦", color: "red" },
+    { symbol: "♣", color: "black" }
+  ];
+
+  const deckRanks = [
+    "2", "3", "4", "5", "6", "7",
+    "8", "9", "10", "J", "Q", "K", "A"
+  ];
+
+  const cards = [];
+
+  deckSuits.forEach(function (suit) {
+    deckRanks.forEach(function (rank) {
+      cards.push({
+        rank: rank,
+        suit: suit.symbol,
+        color: suit.color
+      });
+    });
+  });
+
+  return cards;
+}
+
+function shuffleOnlineDeck(cards) {
+  for (
+    let index = cards.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex = Math.floor(
+      Math.random() * (index + 1)
+    );
+
+    const temporaryCard = cards[index];
+
+    cards[index] = cards[randomIndex];
+    cards[randomIndex] = temporaryCard;
+  }
+
+  return cards;
 }
 
 function getOnlineElements() {
@@ -183,27 +236,21 @@ function rememberPlayerName(name) {
       name
     );
   } catch (error) {
-    console.warn(
-      "Could not remember player name:",
-      error
-    );
+    console.warn(error);
   }
 }
 
 function loadRememberedPlayerName(input) {
   try {
-    const rememberedName = localStorage.getItem(
+    const name = localStorage.getItem(
       "pokerGamePlayerName"
     );
 
-    if (rememberedName) {
-      input.value = rememberedName;
+    if (name) {
+      input.value = name;
     }
   } catch (error) {
-    console.warn(
-      "Could not load player name:",
-      error
-    );
+    console.warn(error);
   }
 }
 
@@ -220,25 +267,28 @@ function stopListeningToRoom() {
   currentRoomRef = null;
 }
 
+function getOrderedPlayerEntries(players) {
+  return Object.entries(players || {})
+    .sort(function (first, second) {
+      return (
+        (first[1].joinedAt || 0) -
+        (second[1].joinedAt || 0)
+      );
+    });
+}
+
 function renderLobbyPlayers(players) {
   const elements = getOnlineElements();
-  const playerEntries = Object.entries(
-    players || {}
-  );
 
-  playerEntries.sort(function (
-    firstEntry,
-    secondEntry
-  ) {
-    return (
-      (firstEntry[1].joinedAt || 0) -
-      (secondEntry[1].joinedAt || 0)
-    );
-  });
+  currentLobbyPlayers = players || {};
+
+  const entries = getOrderedPlayerEntries(
+    currentLobbyPlayers
+  );
 
   elements.lobbyPlayerList.replaceChildren();
 
-  playerEntries.forEach(function (entry) {
+  entries.forEach(function (entry) {
     const uid = entry[0];
     const player = entry[1];
 
@@ -253,16 +303,21 @@ function renderLobbyPlayers(players) {
     badges.className = "lobby-player-badges";
 
     if (uid === currentRoomHostUid) {
-      const hostBadge = document.createElement("span");
+      const hostBadge =
+        document.createElement("span");
+
       hostBadge.className = "lobby-badge";
       hostBadge.textContent = "Host";
       badges.appendChild(hostBadge);
     }
 
     if (onlineUser && uid === onlineUser.uid) {
-      const youBadge = document.createElement("span");
+      const youBadge =
+        document.createElement("span");
+
       youBadge.className =
         "lobby-badge you-badge";
+
       youBadge.textContent = "You";
       badges.appendChild(youBadge);
     }
@@ -273,7 +328,7 @@ function renderLobbyPlayers(players) {
     elements.lobbyPlayerList.appendChild(row);
   });
 
-  const playerCount = playerEntries.length;
+  const playerCount = entries.length;
 
   elements.lobbyPlayerCount.textContent =
     playerCount +
@@ -281,12 +336,147 @@ function renderLobbyPlayers(players) {
       ? " player"
       : " players");
 
+  const isHost =
+    onlineUser &&
+    onlineUser.uid === currentRoomHostUid;
+
+  elements.lobbyStartButton.hidden = !isHost;
+
+  if (isHost) {
+    elements.lobbyStartButton.disabled =
+      playerCount < 3 ||
+      playerCount > 6;
+  }
+
   if (playerCount < 3) {
     elements.lobbyMessage.textContent =
       "Waiting for at least 3 players…";
+  } else if (playerCount > 6) {
+    elements.lobbyMessage.textContent =
+      "The base game currently supports up to 6 players.";
+  } else if (isHost) {
+    elements.lobbyMessage.textContent =
+      "Everyone is here. Start when ready.";
   } else {
     elements.lobbyMessage.textContent =
-      "Everyone is here when the host is ready.";
+      "Waiting for the host to start.";
+  }
+}
+
+async function waitForGameCode() {
+  for (
+    let attempt = 0;
+    attempt < 60;
+    attempt += 1
+  ) {
+    if (
+      window.PokerDynamicPlayers &&
+      window.PokerDynamicPlayers
+        .startOnlineOpening
+    ) {
+      return;
+    }
+
+    await new Promise(function (resolve) {
+      window.setTimeout(resolve, 100);
+    });
+  }
+
+  throw new Error(
+    "The game code did not finish loading."
+  );
+}
+
+async function openOnlineGame() {
+  if (
+    onlineGameOpened ||
+    !currentRoomRef ||
+    !onlineUser
+  ) {
+    return;
+  }
+
+  onlineGameOpened = true;
+
+  const elements = getOnlineElements();
+
+  setMessage(
+    elements.lobbyMessage,
+    "Dealing cards…"
+  );
+
+  try {
+    await waitForGameCode();
+
+    const results = await Promise.all([
+      currentRoomRef
+        .child("game")
+        .once("value"),
+
+      currentRoomRef
+        .child(
+          "privateHands/" +
+          onlineUser.uid
+        )
+        .once("value")
+    ]);
+
+    const gameData = results[0].val();
+    const handData = results[1].val();
+
+    if (
+      !gameData ||
+      !gameData.playerOrder ||
+      !handData
+    ) {
+      throw new Error(
+        "The opening deal is incomplete."
+      );
+    }
+
+    const savedOrder =
+      Object.values(gameData.playerOrder);
+
+    const localOrder = [
+      onlineUser.uid
+    ].concat(
+      savedOrder.filter(function (uid) {
+        return uid !== onlineUser.uid;
+      })
+    );
+
+    const localNames =
+      localOrder.map(function (uid) {
+        return (
+          gameData.playerNames[uid] ||
+          "Player"
+        );
+      });
+
+    const ownHand = [
+      handData.card1,
+      handData.card2
+    ];
+
+    window.PokerDynamicPlayers
+      .startOnlineOpening(
+        localNames,
+        ownHand
+      );
+  } catch (error) {
+    console.error(
+      "Opening online game failed:",
+      error
+    );
+
+    onlineGameOpened = false;
+
+    setMessage(
+      elements.lobbyMessage,
+      "Start failed: " +
+      (error.code || error.message),
+      "error"
+    );
   }
 }
 
@@ -296,8 +486,11 @@ function listenToRoom(roomCode) {
   const elements = getOnlineElements();
 
   currentRoomCode = roomCode;
-  currentRoomRef = onlineDatabase
-    .ref("rooms/" + roomCode);
+  onlineGameOpened = false;
+
+  currentRoomRef = onlineDatabase.ref(
+    "rooms/" + roomCode
+  );
 
   currentPlayersRef =
     currentRoomRef.child("players");
@@ -322,9 +515,13 @@ function listenToRoom(roomCode) {
 
       currentRoomHostUid = meta.hostUid;
 
-      elements.lobbyStartButton.hidden =
-        !onlineUser ||
-        onlineUser.uid !== currentRoomHostUid;
+      renderLobbyPlayers(
+        currentLobbyPlayers
+      );
+
+      if (meta.status === "playing") {
+        openOnlineGame();
+      }
     });
 
   currentPlayersRef.on(
@@ -333,14 +530,10 @@ function listenToRoom(roomCode) {
       renderLobbyPlayers(snapshot.val());
     },
     function (error) {
-      console.error(
-        "Lobby player list failed:",
-        error
-      );
-
       setMessage(
         elements.lobbyMessage,
-        "The player list could not be loaded.",
+        "Player list failed: " +
+        (error.code || error.message),
         "error"
       );
     }
@@ -358,7 +551,11 @@ async function findUnusedRoomCode() {
     const roomCode = createRoomCode();
 
     const snapshot = await onlineDatabase
-      .ref("rooms/" + roomCode + "/meta")
+      .ref(
+        "rooms/" +
+        roomCode +
+        "/meta"
+      )
       .once("value");
 
     if (!snapshot.exists()) {
@@ -367,12 +564,13 @@ async function findUnusedRoomCode() {
   }
 
   throw new Error(
-    "A room code could not be created. Try again."
+    "Could not create a room code."
   );
 }
 
 async function createOnlineRoom() {
   const elements = getOnlineElements();
+
   const playerName = cleanPlayerName(
     elements.playerNameInput.value
   );
@@ -380,7 +578,7 @@ async function createOnlineRoom() {
   if (!onlineUser) {
     setMessage(
       elements.onlineMessage,
-      "Still connecting. Please try again.",
+      "Still connecting. Try again.",
       "error"
     );
 
@@ -417,12 +615,16 @@ async function createOnlineRoom() {
     await roomRef.child("meta").set({
       hostUid: onlineUser.uid,
       status: "lobby",
+      stage: "preflop",
       createdAt:
         firebase.database.ServerValue.TIMESTAMP
     });
 
     await roomRef
-      .child("players/" + onlineUser.uid)
+      .child(
+        "players/" +
+        onlineUser.uid
+      )
       .set({
         name: playerName,
         joinedAt:
@@ -430,21 +632,22 @@ async function createOnlineRoom() {
       });
 
     roomRef
-      .child("players/" + onlineUser.uid)
+      .child(
+        "players/" +
+        onlineUser.uid
+      )
       .onDisconnect()
       .remove();
 
     rememberPlayerName(playerName);
     listenToRoom(roomCode);
   } catch (error) {
-    console.error(
-      "Create room failed:",
-      error
-    );
+    console.error(error);
 
     setMessage(
       elements.onlineMessage,
-      "Could not create the room. Try again.",
+      "Create failed: " +
+      (error.code || error.message),
       "error"
     );
   } finally {
@@ -455,6 +658,7 @@ async function createOnlineRoom() {
 
 async function joinOnlineRoom() {
   const elements = getOnlineElements();
+
   const playerName = cleanPlayerName(
     elements.playerNameInput.value
   );
@@ -468,7 +672,7 @@ async function joinOnlineRoom() {
   if (!onlineUser) {
     setMessage(
       elements.onlineMessage,
-      "Still connecting. Please try again.",
+      "Still connecting. Try again.",
       "error"
     );
 
@@ -482,7 +686,6 @@ async function joinOnlineRoom() {
       "error"
     );
 
-    elements.playerNameInput.focus();
     return;
   }
 
@@ -493,7 +696,6 @@ async function joinOnlineRoom() {
       "error"
     );
 
-    elements.roomCodeInput.focus();
     return;
   }
 
@@ -517,7 +719,7 @@ async function joinOnlineRoom() {
     if (!metaSnapshot.exists()) {
       setMessage(
         elements.onlineMessage,
-        "Room not found. Check the code.",
+        "Room not found.",
         "error"
       );
 
@@ -538,7 +740,10 @@ async function joinOnlineRoom() {
     }
 
     await roomRef
-      .child("players/" + onlineUser.uid)
+      .child(
+        "players/" +
+        onlineUser.uid
+      )
       .set({
         name: playerName,
         joinedAt:
@@ -546,19 +751,19 @@ async function joinOnlineRoom() {
       });
 
     roomRef
-      .child("players/" + onlineUser.uid)
+      .child(
+        "players/" +
+        onlineUser.uid
+      )
       .onDisconnect()
       .remove();
 
     rememberPlayerName(playerName);
     listenToRoom(roomCode);
   } catch (error) {
-    console.error(
-      "Join room failed:",
-      error
-    );
+    console.error(error);
 
-        setMessage(
+    setMessage(
       elements.onlineMessage,
       "Join failed: " +
       (error.code || error.message),
@@ -567,6 +772,121 @@ async function joinOnlineRoom() {
   } finally {
     elements.createRoomButton.disabled = false;
     elements.joinRoomButton.disabled = false;
+  }
+}
+
+async function startOnlineGame() {
+  const elements = getOnlineElements();
+
+  if (
+    !onlineUser ||
+    !currentRoomRef ||
+    onlineUser.uid !== currentRoomHostUid
+  ) {
+    return;
+  }
+
+  const entries = getOrderedPlayerEntries(
+    currentLobbyPlayers
+  );
+
+  if (
+    entries.length < 3 ||
+    entries.length > 6
+  ) {
+    setMessage(
+      elements.lobbyMessage,
+      "Start with 3–6 players.",
+      "error"
+    );
+
+    return;
+  }
+
+  elements.lobbyStartButton.disabled = true;
+
+  setMessage(
+    elements.lobbyMessage,
+    "Shuffling and dealing…"
+  );
+
+  try {
+    const cards = shuffleOnlineDeck(
+      createOnlineDeck()
+    );
+
+    const playerOrder =
+      entries.map(function (entry) {
+        return entry[0];
+      });
+
+    const playerNames = {};
+    const hands = {};
+
+    entries.forEach(function (entry) {
+      playerNames[entry[0]] =
+        entry[1].name || "Player";
+
+      hands[entry[0]] = [];
+    });
+
+    for (
+      let cardNumber = 0;
+      cardNumber < 2;
+      cardNumber += 1
+    ) {
+      playerOrder.forEach(function (uid) {
+        hands[uid].push(cards.pop());
+      });
+    }
+
+    const flop = [
+      cards.pop(),
+      cards.pop(),
+      cards.pop()
+    ];
+
+    const turn = cards.pop();
+    const river = cards.pop();
+
+    const updates = {
+      "game/playerOrder": playerOrder,
+      "game/playerNames": playerNames,
+      "game/startedAt":
+        firebase.database.ServerValue.TIMESTAMP,
+
+      "board/flop": flop,
+      "board/turn": turn,
+      "board/river": river,
+
+      "meta/status": "playing",
+      "meta/stage": "preflop"
+    };
+
+    playerOrder.forEach(function (uid) {
+      updates[
+        "privateHands/" + uid
+      ] = {
+        card1: hands[uid][0],
+        card2: hands[uid][1]
+      };
+    });
+
+    await currentRoomRef.update(updates);
+  } catch (error) {
+    console.error(
+      "Start game failed:",
+      error
+    );
+
+    elements.lobbyStartButton.disabled = false;
+
+    setMessage(
+      elements.lobbyMessage,
+      "Start failed: " +
+      (error.code || error.message),
+      "error"
+    );
   }
 }
 
@@ -587,10 +907,7 @@ async function leaveOnlineRoom() {
         )
         .remove();
     } catch (error) {
-      console.error(
-        "Leave room failed:",
-        error
-      );
+      console.error(error);
     }
   }
 
@@ -598,8 +915,9 @@ async function leaveOnlineRoom() {
 
   currentRoomCode = null;
   currentRoomHostUid = null;
+  currentLobbyPlayers = {};
+  onlineGameOpened = false;
 
-  setMessage(elements.onlineMessage, "");
   showOnlineScreen(elements.menuScreen);
 }
 
@@ -674,14 +992,12 @@ function setUpOnlineButtons() {
 
   elements.lobbyStartButton.addEventListener(
     "click",
-    function () {
-      window.alert(
-        "The live online game connection comes next. " +
-        "For now, the room and player list are working."
-      );
-    }
+    startOnlineGame
   );
 }
+
+window.createOnlineRoom = createOnlineRoom;
+window.joinOnlineRoom = joinOnlineRoom;
 
 showOnlineStatus("Connecting…", false);
 setUpOnlineButtons();

@@ -135,8 +135,12 @@
     }
   }
 
-  function connectDynamicSeat(seat) {
+    function connectDynamicSeat(seat) {
     seat.addEventListener("click", function () {
+      if (window.pokerOnlineMode) {
+        return;
+      }
+
       activePlayerIndex = Number(
         seat.dataset.player
       );
@@ -151,9 +155,17 @@
     });
   }
 
-  function connectDynamicToken(button) {
+    function connectDynamicToken(button) {
     button.addEventListener("click", function (event) {
       event.stopPropagation();
+
+      if (window.pokerOnlineMode) {
+        showNotification(
+          "Online token selection comes next"
+        );
+
+        return;
+      }
 
       chooseToken(
         Number(button.dataset.tokenNumber)
@@ -420,6 +432,8 @@
       event.preventDefault();
       event.stopImmediatePropagation();
 
+            window.pokerOnlineMode = false;
+
       buildGameLayout(
         selectedPlayerCount
       );
@@ -428,6 +442,124 @@
     },
     true
   );
+
+    function startOnlineOpening(
+    onlinePlayerNames,
+    ownHand
+  ) {
+    window.pokerOnlineMode = true;
+
+    selectedPlayerCount =
+      onlinePlayerNames.length;
+
+    buildGameLayout(selectedPlayerCount);
+
+    playerNames.splice(
+      0,
+      playerNames.length,
+      ...onlinePlayerNames
+    );
+
+    playerSeats.forEach(function (
+      seat,
+      playerIndex
+    ) {
+      const nameElement =
+        seat.querySelector(".seat-name");
+
+      if (nameElement) {
+        nameElement.textContent =
+          onlinePlayerNames[playerIndex];
+      }
+    });
+
+    const yourName =
+      document.querySelector(
+        ".your-label strong"
+      );
+
+    yourName.textContent =
+      onlinePlayerNames[0] + " (You)";
+
+    playerHands = Array.from(
+      {
+        length: selectedPlayerCount
+      },
+      function (_, playerIndex) {
+        if (playerIndex === 0) {
+          return ownHand;
+        }
+
+        return [null, null];
+      }
+    );
+
+    communityCards = [
+      null,
+      null,
+      null,
+      null,
+      null
+    ];
+
+    activePlayerIndex = 0;
+    currentStageIndex = 0;
+    successfulRounds = 0;
+    failedRounds = 0;
+    roundNumber = 1;
+    gameOver = false;
+    roundFinished = false;
+    roundScored = false;
+    evaluatedHands = [];
+    revealOrder = [];
+    revealedCount = 0;
+    teamOrderCorrect = true;
+
+    playerRequests.fill(null);
+    playerConfirmations.fill(false);
+
+    tokenHistory.forEach(function (history) {
+      history.length = 0;
+    });
+
+    gameScreen.classList.remove(
+      "results-active"
+    );
+
+    document
+      .querySelectorAll(".hand-result")
+      .forEach(function (result) {
+        result.remove();
+      });
+
+    document
+      .querySelectorAll(".hidden-hand .card")
+      .forEach(function (card) {
+        card.replaceChildren();
+        card.className = "card card-back";
+      });
+
+    renderPlayerHands();
+    renderCommunityCards();
+    renderTokenSystem();
+    updateScoreDisplay();
+
+    advanceButton.disabled = true;
+    advanceButton.textContent =
+      "Online Tokens Coming Next";
+
+    showScreen(gameScreen);
+    prepareOpeningDeal();
+
+    window.requestAnimationFrame(function () {
+      animateOpeningDeal();
+    });
+  }
+
+  window.PokerDynamicPlayers = {
+    startOnlineOpening:
+      startOnlineOpening
+  };
 
   updatePlayerSelection(4);
 })();
