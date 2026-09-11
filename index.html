@@ -47,6 +47,10 @@
         Start Local Game
       </button>
 
+            <button id="online-game-button" type="button">
+        Online Multiplayer
+      </button>
+
       <button id="how-to-play-button" type="button">
         How to Play
       </button>
@@ -129,6 +133,122 @@
 
       <button class="back-button" type="button">
         Back to Menu
+      </button>
+    </section>
+
+        <!-- Online room setup -->
+    <section id="online-screen" hidden>
+      <h1>Play Online</h1>
+
+      <p class="subtitle">
+        Create a private room or join your friends
+      </p>
+
+      <div class="online-form">
+        <label for="online-player-name">
+          Your Name
+        </label>
+
+        <input
+          id="online-player-name"
+          type="text"
+          maxlength="18"
+          autocomplete="name"
+          placeholder="Enter your name"
+        >
+
+        <button id="create-room-button" type="button">
+          Create Room
+        </button>
+
+        <div class="online-divider">
+          <span>or</span>
+        </div>
+
+        <label for="room-code-input">
+          Room Code
+        </label>
+
+        <input
+          id="room-code-input"
+          type="text"
+          maxlength="5"
+          autocapitalize="characters"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="ABCDE"
+        >
+
+        <button id="join-room-button" type="button">
+          Join Room
+        </button>
+
+        <p
+          id="online-message"
+          class="online-message"
+          aria-live="polite"
+        ></p>
+      </div>
+
+      <button
+        id="online-back-button"
+        class="secondary-button"
+        type="button"
+      >
+        Back to Menu
+      </button>
+    </section>
+
+    <!-- Online lobby -->
+    <section id="lobby-screen" hidden>
+      <h1>Game Lobby</h1>
+
+      <p class="lobby-code-label">Room Code</p>
+
+      <button
+        id="room-code-display"
+        class="room-code-display"
+        type="button"
+        aria-label="Copy room code"
+      >
+        -----
+      </button>
+
+      <p class="copy-code-note">
+        Tap the code to copy it
+      </p>
+
+      <div class="lobby-panel">
+        <div class="lobby-heading">
+          <strong>Players</strong>
+          <span id="lobby-player-count">0 joined</span>
+        </div>
+
+        <div id="lobby-player-list"></div>
+      </div>
+
+      <p
+        id="lobby-message"
+        class="online-message"
+        aria-live="polite"
+      >
+        Waiting for players…
+      </p>
+
+      <button
+        id="lobby-start-button"
+        type="button"
+        hidden
+      >
+        Start Game
+      </button>
+
+      <button
+        id="leave-room-button"
+        class="secondary-button"
+        type="button"
+      >
+        Leave Room
       </button>
     </section>
 
@@ -352,7 +472,15 @@
   src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"
 ></script>
 
-<script src="online.js"></script>
+<script>
+  const onlineScript =
+    document.createElement("script");
+
+  onlineScript.src =
+    "online.js?v=" + window.gameCacheVersion;
+
+  document.body.appendChild(onlineScript);
+</script>
   <script>
   const evaluatorScript =
     document.createElement("script");
