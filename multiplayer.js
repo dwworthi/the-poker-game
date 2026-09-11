@@ -850,8 +850,9 @@ async function startOnlineGame() {
     const river = cards.pop();
 
     const updates = {
-      "game/playerOrder": playerOrder,
+        "game/playerOrder": playerOrder,
       "game/playerNames": playerNames,
+      "game/playerCount": playerOrder.length,
       "game/startedAt":
         firebase.database.ServerValue.TIMESTAMP,
 
