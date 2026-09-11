@@ -47,7 +47,14 @@
         Start Local Game
       </button>
 
-            <button id="online-game-button" type="button">
+                  <button
+        id="online-game-button"
+        type="button"
+        onclick="
+          document.querySelector('#menu-screen').hidden = true;
+          document.querySelector('#online-screen').hidden = false;
+        "
+      >
         Online Multiplayer
       </button>
 
