@@ -61,7 +61,8 @@ firebase
     );
 
     showOnlineStatus(
-      "Online connection failed",
-      false
-    );
+  "Failed: " +
+  (error.code || error.message),
+  false
+);
   });
