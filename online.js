@@ -558,9 +558,10 @@ async function joinOnlineRoom() {
       error
     );
 
-    setMessage(
+        setMessage(
       elements.onlineMessage,
-      "Could not join the room. Try again.",
+      "Join failed: " +
+      (error.code || error.message),
       "error"
     );
   } finally {
