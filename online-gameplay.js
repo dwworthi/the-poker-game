@@ -319,8 +319,9 @@
         error
       );
 
-      showNotification(
-        "Token choice failed — try again"
+            showNotification(
+        "Token failed: " +
+        (error.code || error.message)
       );
     }
   }
