@@ -158,13 +158,19 @@ function showScreen(screenToShow) {
 }
 
 function showNotification(message) {
+  notificationBanner.hidden = false;
   notificationBanner.textContent = message;
 
   window.clearTimeout(notificationTimer);
 
   notificationTimer = window.setTimeout(function () {
-    notificationBanner.textContent =
-      "Tap a player to simulate their choice";
+    if (window.pokerOnlineMode) {
+      notificationBanner.textContent = "";
+      notificationBanner.hidden = true;
+    } else {
+      notificationBanner.textContent =
+        "Tap a player to simulate their choice";
+    }
   }, 2600);
 }
 

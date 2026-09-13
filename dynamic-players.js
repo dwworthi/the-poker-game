@@ -457,7 +457,8 @@
         onlinePlayerUids =
       localPlayerUids.slice();
 
-    window.pokerOnlineMode = true;
+        window.pokerOnlineMode = true;
+    notificationBanner.hidden = true;
 
     processedOnlineReveals = 0;
     onlineRevealResults = [];
