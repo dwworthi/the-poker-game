@@ -432,8 +432,12 @@
         if (
           stageOrder.includes(newStage)
         ) {
-          currentOnlineStage = newStage;
-          loadVisibleCommunity();
+                    currentOnlineStage = newStage;
+
+          window.setTimeout(
+            loadVisibleCommunity,
+            350
+          );
         }
       });
   }
