@@ -454,9 +454,12 @@
     ownHand,
     localPlayerUids
   ) {
-    onlinePlayerUids =
+        onlinePlayerUids =
       localPlayerUids.slice();
-        processedOnlineReveals = 0;
+
+    window.pokerOnlineMode = true;
+
+    processedOnlineReveals = 0;
     onlineRevealResults = [];
     onlineOrderCorrect = true;
 
