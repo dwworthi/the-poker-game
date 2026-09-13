@@ -438,7 +438,8 @@
       event.preventDefault();
       event.stopImmediatePropagation();
 
-            window.pokerOnlineMode = false;
+                  window.pokerOnlineMode = false;
+      gameScreen.classList.remove("online-game");
 
       buildGameLayout(
         selectedPlayerCount
@@ -457,7 +458,8 @@
         onlinePlayerUids =
       localPlayerUids.slice();
 
-        window.pokerOnlineMode = true;
+            window.pokerOnlineMode = true;
+    gameScreen.classList.add("online-game");
     notificationBanner.hidden = true;
 
     processedOnlineReveals = 0;
@@ -840,11 +842,23 @@
 
       processedOnlineReveals += 1;
 
-      showNotification(
+            const currentResultBox =
+        getPlayerSeat(playerIndex)
+          .querySelector(".hand-result");
+
+      const comparisonText =
+        currentResultBox
+          .querySelector(".comparison")
+          .textContent;
+
+      notificationBanner.hidden = false;
+
+      notificationBanner.textContent =
         playerNames[playerIndex] +
         " — " +
-        result.description
-      );
+        result.description +
+        " — " +
+        comparisonText;
     }
 
     if (

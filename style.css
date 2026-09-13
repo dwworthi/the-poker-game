@@ -1604,3 +1604,45 @@ button:disabled {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Cleaner online showdown */
+.online-game.results-active
+.hand-result:not(.minimized-result) {
+  display: none;
+}
+
+.online-game.results-active
+.hidden-hand {
+  gap: 5px;
+}
+
+.online-game.results-active
+.hidden-hand .card {
+  width: 35px;
+  height: 49px;
+  margin: 0;
+
+  font-size: 0.92rem;
+
+  transform: none;
+}
+
+.online-game.results-active
+.player-count-5
+.hidden-hand .card,
+.online-game.results-active
+.player-count-6
+.hidden-hand .card {
+  width: 31px;
+  height: 44px;
+  font-size: 0.82rem;
+}
+
+.online-game.results-active
+.hand-result.minimized-result {
+  width: 27px;
+  min-height: 27px;
+}
+
+.online-game .test-instruction {
+  display: none;
+}
