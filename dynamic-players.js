@@ -618,9 +618,6 @@
 
     activePlayerIndex = 0;
     currentStageIndex = 0;
-    successfulRounds = 0;
-    failedRounds = 0;
-    roundNumber = 1;
     gameOver = false;
     roundFinished = false;
     roundScored = false;
@@ -673,7 +670,6 @@
     renderPlayerHands();
     renderCommunityCards();
     renderTokenSystem();
-    updateScoreDisplay();
 
     advanceButton.disabled = true;
 
