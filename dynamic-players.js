@@ -1,40 +1,48 @@
 (function () {
   "use strict";
 
-    let selectedPlayerCount = 4;
-    let onlinePlayerUids = [];
+  let selectedPlayerCount = 4;
+  let onlinePlayerUids = [];
   let processedOnlineReveals = 0;
   let onlineRevealResults = [];
   let onlineOrderCorrect = true;
 
   const countButtons = Array.from(
-    document.querySelectorAll("[data-player-count]")
+    document.querySelectorAll(
+      "[data-player-count]"
+    )
   );
 
-  const continueButton = document.querySelector(
-    "#continue-game-button"
-  );
+  const continueButton =
+    document.querySelector(
+      "#continue-game-button"
+    );
 
-  const previewDescription = document.querySelector(
-    "#preview-description"
-  );
+  const previewDescription =
+    document.querySelector(
+      "#preview-description"
+    );
 
-  const layoutPreview = document.querySelector(
-    ".layout-preview"
-  );
+  const layoutPreview =
+    document.querySelector(
+      ".layout-preview"
+    );
 
   if (layoutPreview) {
     layoutPreview.hidden = true;
   }
 
-  function updatePlayerSelection(playerCount) {
+  function updatePlayerSelection(
+    playerCount
+  ) {
     selectedPlayerCount = playerCount;
 
     countButtons.forEach(function (button) {
       button.classList.toggle(
         "selected-count",
-        Number(button.dataset.playerCount) ===
-          playerCount
+        Number(
+          button.dataset.playerCount
+        ) === playerCount
       );
     });
 
@@ -50,8 +58,11 @@
       "-Player Game";
   }
 
-  function createOpponentSeat(playerIndex) {
-    const seat = document.createElement("article");
+  function createOpponentSeat(
+    playerIndex
+  ) {
+    const seat =
+      document.createElement("article");
 
     seat.className =
       "player-seat opponent-seat " +
@@ -60,26 +71,43 @@
 
     seat.dataset.player = playerIndex;
 
-    const name = document.createElement("div");
-    name.className = "seat-name";
-    name.textContent = "Player " + (playerIndex + 1);
+    const name =
+      document.createElement("div");
 
-    const hand = document.createElement("div");
+    name.className = "seat-name";
+
+    name.textContent =
+      "Player " + (playerIndex + 1);
+
+    const hand =
+      document.createElement("div");
+
     hand.className = "hidden-hand";
 
-    const firstCard = document.createElement("div");
-    firstCard.className = "card card-back";
+    const firstCard =
+      document.createElement("div");
 
-    const secondCard = document.createElement("div");
-    secondCard.className = "card card-back";
+    firstCard.className =
+      "card card-back";
+
+    const secondCard =
+      document.createElement("div");
+
+    secondCard.className =
+      "card card-back";
 
     hand.appendChild(firstCard);
     hand.appendChild(secondCard);
 
-    const tokenSpace = document.createElement("div");
+    const tokenSpace =
+      document.createElement("div");
 
-    tokenSpace.className = "owned-token";
-    tokenSpace.dataset.tokenSpace = playerIndex;
+    tokenSpace.className =
+      "owned-token";
+
+    tokenSpace.dataset.tokenSpace =
+      playerIndex;
+
     tokenSpace.textContent = "—";
 
     seat.appendChild(name);
@@ -89,19 +117,32 @@
     return seat;
   }
 
-  function createRankingToken(tokenNumber) {
-    const button = document.createElement("button");
+  function createRankingToken(
+    tokenNumber
+  ) {
+    const button =
+      document.createElement("button");
 
-    button.className = "ranking-token";
+    button.className =
+      "ranking-token";
+
     button.type = "button";
     button.textContent = tokenNumber;
-    button.dataset.tokenNumber = tokenNumber;
+
+    button.dataset.tokenNumber =
+      tokenNumber;
 
     return button;
   }
 
-  function resizeGameArrays(playerCount) {
-    playerNames.splice(0, playerNames.length, "You");
+  function resizeGameArrays(
+    playerCount
+  ) {
+    playerNames.splice(
+      0,
+      playerNames.length,
+      "You"
+    );
 
     for (
       let playerIndex = 1;
@@ -139,58 +180,70 @@
     }
   }
 
-    function connectDynamicSeat(seat) {
-    seat.addEventListener("click", function () {
-      if (window.pokerOnlineMode) {
-        return;
-      }
-
-      activePlayerIndex = Number(
-        seat.dataset.player
-      );
-
-      renderActivePlayer();
-      updateConfirmationButton();
-
-      showNotification(
-        "Testing as " +
-        playerNames[activePlayerIndex]
-      );
-    });
-  }
-
-    function connectDynamicToken(button) {
-    button.addEventListener("click", function (event) {
-      event.stopPropagation();
-
-            if (window.pokerOnlineMode) {
-        if (window.PokerOnlineActions) {
-          window.PokerOnlineActions.chooseToken(
-            Number(button.dataset.tokenNumber)
-          );
+  function connectDynamicSeat(seat) {
+    seat.addEventListener(
+      "click",
+      function () {
+        if (window.pokerOnlineMode) {
+          return;
         }
 
-        return;
-      }
+        activePlayerIndex = Number(
+          seat.dataset.player
+        );
 
-      chooseToken(
-        Number(button.dataset.tokenNumber)
-      );
-    });
+        renderActivePlayer();
+        updateConfirmationButton();
+
+        showNotification(
+          "Testing as " +
+          playerNames[activePlayerIndex]
+        );
+      }
+    );
+  }
+
+  function connectDynamicToken(button) {
+    button.addEventListener(
+      "click",
+      function (event) {
+        event.stopPropagation();
+
+        const tokenNumber = Number(
+          button.dataset.tokenNumber
+        );
+
+        if (window.pokerOnlineMode) {
+          if (
+            window.PokerOnlineActions
+          ) {
+            window.PokerOnlineActions
+              .chooseToken(tokenNumber);
+          }
+
+          return;
+        }
+
+        chooseToken(tokenNumber);
+      }
+    );
   }
 
   function buildGameLayout(playerCount) {
-    const tableScene = document.querySelector(
-      ".table-scene"
-    );
+    const tableScene =
+      document.querySelector(
+        ".table-scene"
+      );
 
-    const tableCenter = document.querySelector(
-      ".table-center"
-    );
+    const tableCenter =
+      document.querySelector(
+        ".table-center"
+      );
 
-    const tokenContainer = document.querySelector(
-      ".token-row"
-    );
+    const tokenContainer =
+      document.querySelector(
+        ".token-row"
+      );
 
     tableScene
       .querySelectorAll(".player-seat")
@@ -238,9 +291,10 @@
       newTokens.push(token);
     }
 
-    const yourSeat = document.querySelector(
-      ".you-seat"
-    );
+    const yourSeat =
+      document.querySelector(
+        ".you-seat"
+      );
 
     playerSeats.splice(
       0,
@@ -258,10 +312,6 @@
     resizeGameArrays(playerCount);
   }
 
-  /*
-   * Replace the fixed four-player round setup with
-   * a version based on the selected player count.
-   */
   dealNewRound = function () {
     deck = shuffleDeck(createDeck());
 
@@ -281,7 +331,8 @@
     ) {
       for (
         let playerIndex = 0;
-        playerIndex < selectedPlayerCount;
+        playerIndex <
+          selectedPlayerCount;
         playerIndex += 1
       ) {
         playerHands[playerIndex].push(
@@ -312,24 +363,41 @@
     );
 
     document
-      .querySelectorAll(".hand-result")
+      .querySelectorAll(
+        ".reveal-minimized"
+      )
+      .forEach(function (seat) {
+        seat.classList.remove(
+          "reveal-minimized"
+        );
+      });
+
+    document
+      .querySelectorAll(
+        ".hand-result"
+      )
       .forEach(function (result) {
         result.remove();
       });
 
     document
-      .querySelectorAll(".hidden-hand .card")
+      .querySelectorAll(
+        ".hidden-hand .card"
+      )
       .forEach(function (card) {
         card.replaceChildren();
-        card.className = "card card-back";
+        card.className =
+          "card card-back";
       });
 
     playerRequests.fill(null);
     playerConfirmations.fill(false);
 
-    tokenHistory.forEach(function (history) {
-      history.length = 0;
-    });
+    tokenHistory.forEach(
+      function (history) {
+        history.length = 0;
+      }
+    );
 
     renderPlayerHands();
     renderCommunityCards();
@@ -341,13 +409,15 @@
   };
 
   prepareResults = function () {
-    evaluatedHands = playerHands.map(
-      function (hand) {
-        return PokerEvaluator.evaluateSeven(
-          hand.concat(communityCards)
-        );
-      }
-    );
+    evaluatedHands =
+      playerHands.map(function (hand) {
+        return PokerEvaluator
+          .evaluateSeven(
+            hand.concat(
+              communityCards
+            )
+          );
+      });
 
     revealOrder = Array.from(
       {
@@ -366,7 +436,8 @@
     revealedCount = 0;
     teamOrderCorrect = true;
 
-    stageLabel.textContent = "Showdown";
+    stageLabel.textContent =
+      "Showdown";
 
     gameScreen.classList.add(
       "results-active"
@@ -387,12 +458,15 @@
     ) {
       for (
         let playerIndex = 0;
-        playerIndex < selectedPlayerCount;
+        playerIndex <
+          selectedPlayerCount;
         playerIndex += 1
       ) {
         if (playerIndex === 0) {
           targets.push(
-            yourCardElements[cardIndex]
+            yourCardElements[
+              cardIndex
+            ]
           );
         } else {
           const playerSeat =
@@ -402,11 +476,13 @@
               '"]'
             );
 
-          const playerCards = Array.from(
-            playerSeat.querySelectorAll(
-              ".hidden-hand .card"
-            )
-          );
+          const playerCards =
+            Array.from(
+              playerSeat
+                .querySelectorAll(
+                  ".hidden-hand .card"
+                )
+            );
 
           targets.push(
             playerCards[cardIndex]
@@ -418,19 +494,24 @@
     return targets;
   };
 
-  countButtons.forEach(function (button) {
-    button.addEventListener(
-      "click",
-      function (event) {
-        event.stopImmediatePropagation();
+  countButtons.forEach(
+    function (button) {
+      button.addEventListener(
+        "click",
+        function (event) {
+          event.stopImmediatePropagation();
 
-        updatePlayerSelection(
-          Number(button.dataset.playerCount)
-        );
-      },
-      true
-    );
-  });
+          updatePlayerSelection(
+            Number(
+              button.dataset
+                .playerCount
+            )
+          );
+        },
+        true
+      );
+    }
+  );
 
   continueButton.addEventListener(
     "click",
@@ -438,8 +519,13 @@
       event.preventDefault();
       event.stopImmediatePropagation();
 
-                  window.pokerOnlineMode = false;
-      gameScreen.classList.remove("online-game");
+      window.pokerOnlineMode = false;
+
+      gameScreen.classList.remove(
+        "online-game"
+      );
+
+      notificationBanner.hidden = false;
 
       buildGameLayout(
         selectedPlayerCount
@@ -450,16 +536,20 @@
     true
   );
 
-      function startOnlineOpening(
+  function startOnlineOpening(
     onlinePlayerNames,
     ownHand,
     localPlayerUids
   ) {
-        onlinePlayerUids =
+    onlinePlayerUids =
       localPlayerUids.slice();
 
-            window.pokerOnlineMode = true;
-    gameScreen.classList.add("online-game");
+    window.pokerOnlineMode = true;
+
+    gameScreen.classList.add(
+      "online-game"
+    );
+
     notificationBanner.hidden = true;
 
     processedOnlineReveals = 0;
@@ -469,7 +559,9 @@
     selectedPlayerCount =
       onlinePlayerNames.length;
 
-    buildGameLayout(selectedPlayerCount);
+    buildGameLayout(
+      selectedPlayerCount
+    );
 
     playerNames.splice(
       0,
@@ -482,11 +574,15 @@
       playerIndex
     ) {
       const nameElement =
-        seat.querySelector(".seat-name");
+        seat.querySelector(
+          ".seat-name"
+        );
 
       if (nameElement) {
         nameElement.textContent =
-          onlinePlayerNames[playerIndex];
+          onlinePlayerNames[
+            playerIndex
+          ];
       }
     });
 
@@ -496,7 +592,8 @@
       );
 
     yourName.textContent =
-      onlinePlayerNames[0] + " (You)";
+      onlinePlayerNames[0] +
+      " (You)";
 
     playerHands = Array.from(
       {
@@ -535,25 +632,32 @@
     playerRequests.fill(null);
     playerConfirmations.fill(false);
 
-    tokenHistory.forEach(function (history) {
-      history.length = 0;
-    });
+    tokenHistory.forEach(
+      function (history) {
+        history.length = 0;
+      }
+    );
 
     gameScreen.classList.remove(
       "results-active"
     );
 
     document
-      .querySelectorAll(".hand-result")
+      .querySelectorAll(
+        ".hand-result"
+      )
       .forEach(function (result) {
         result.remove();
       });
 
     document
-      .querySelectorAll(".hidden-hand .card")
+      .querySelectorAll(
+        ".hidden-hand .card"
+      )
       .forEach(function (card) {
         card.replaceChildren();
-        card.className = "card card-back";
+        card.className =
+          "card card-back";
       });
 
     renderPlayerHands();
@@ -562,18 +666,21 @@
     updateScoreDisplay();
 
     advanceButton.disabled = true;
+
     advanceButton.textContent =
-      "Online Tokens Coming Next";
+      "Waiting for token choices";
 
     showScreen(gameScreen);
     prepareOpeningDeal();
 
-    window.requestAnimationFrame(function () {
-      animateOpeningDeal();
-    });
+    window.requestAnimationFrame(
+      function () {
+        animateOpeningDeal();
+      }
+    );
   }
 
-    function applyOnlineState(state) {
+  function applyOnlineState(state) {
     const stageKeys = [
       "preflop",
       "flop",
@@ -582,64 +689,88 @@
     ];
 
     const newStageIndex =
-      stageKeys.indexOf(state.stage);
+      stageKeys.indexOf(
+        state.stage
+      );
 
     if (newStageIndex !== -1) {
-      currentStageIndex = newStageIndex;
+      currentStageIndex =
+        newStageIndex;
     }
 
-    playerRequests.forEach(function (
-      unused,
-      playerIndex
-    ) {
-      const uid =
-        onlinePlayerUids[playerIndex];
-
-      const request =
-        state.currentRequests[uid];
-
-      playerRequests[playerIndex] =
-        typeof request === "number"
-          ? request
-          : null;
-
-      playerConfirmations[playerIndex] =
-        state.confirmations[uid] ===
-        state.signature;
-    });
-
-    tokenHistory.forEach(function (
-      history,
-      playerIndex
-    ) {
-      history.length = 0;
-
-      const uid =
-        onlinePlayerUids[playerIndex];
-
-      for (
-        let stageIndex = 0;
-        stageIndex < currentStageIndex;
-        stageIndex += 1
+    playerRequests.forEach(
+      function (
+        unused,
+        playerIndex
       ) {
-        const stageKey =
-          stageKeys[stageIndex];
+        const uid =
+          onlinePlayerUids[
+            playerIndex
+          ];
 
-        const stageRequests =
-          state.allRequests[stageKey] || {};
+        const request =
+          state.currentRequests[uid];
 
-        if (
-          typeof stageRequests[uid] ===
-          "number"
+        playerRequests[playerIndex] =
+          typeof request === "number"
+            ? request
+            : null;
+
+        playerConfirmations[
+          playerIndex
+        ] =
+          state.confirmations[uid] ===
+          state.signature;
+      }
+    );
+
+    tokenHistory.forEach(
+      function (
+        history,
+        playerIndex
+      ) {
+        history.length = 0;
+
+        const uid =
+          onlinePlayerUids[
+            playerIndex
+          ];
+
+        for (
+          let stageIndex = 0;
+          stageIndex <
+            currentStageIndex;
+          stageIndex += 1
         ) {
-          history.push({
-            number: stageRequests[uid],
-            color: stages[stageIndex].color,
-            stage: stages[stageIndex].name
-          });
+          const stageKey =
+            stageKeys[stageIndex];
+
+          const stageRequests =
+            state.allRequests[
+              stageKey
+            ] || {};
+
+          if (
+            typeof stageRequests[
+              uid
+            ] === "number"
+          ) {
+            history.push({
+              number:
+                stageRequests[uid],
+
+              color:
+                stages[stageIndex]
+                  .color,
+
+              stage:
+                stages[stageIndex]
+                  .name
+            });
+          }
         }
       }
-    });
+    );
 
     communityCards = [
       null,
@@ -651,7 +782,8 @@
 
     state.visibleCommunity.forEach(
       function (card, cardIndex) {
-        communityCards[cardIndex] = card;
+        communityCards[cardIndex] =
+          card;
       }
     );
 
@@ -659,9 +791,11 @@
     renderTokenSystem();
 
     const everyoneChose =
-      playerRequests.every(function (request) {
-        return request !== null;
-      });
+      playerRequests.every(
+        function (request) {
+          return request !== null;
+        }
+      );
 
     const choicesAreUnique =
       new Set(playerRequests).size ===
@@ -679,10 +813,12 @@
 
     if (!everyoneChose) {
       advanceButton.disabled = true;
+
       advanceButton.textContent =
         "Everyone Must Choose a Token";
     } else if (!choicesAreUnique) {
       advanceButton.disabled = true;
+
       advanceButton.textContent =
         "Players Want the Same Token";
     } else if (allConfirmed) {
@@ -694,10 +830,12 @@
           : "Dealing Next Stage…";
     } else if (ownConfirmed) {
       advanceButton.disabled = true;
+
       advanceButton.textContent =
         "You Confirmed ✓";
     } else {
       advanceButton.disabled = false;
+
       advanceButton.textContent =
         "I’m Good With This";
     }
@@ -714,14 +852,16 @@
       event.stopImmediatePropagation();
 
       if (window.PokerOnlineActions) {
-        window.PokerOnlineActions.confirm();
+        window.PokerOnlineActions
+          .confirm();
       }
     },
     true
   );
 
-    function applyOnlineShowdown(state) {
-    stageLabel.textContent = "Showdown";
+  function applyOnlineShowdown(state) {
+    stageLabel.textContent =
+      "Showdown";
 
     gameScreen.classList.add(
       "results-active"
@@ -742,7 +882,8 @@
         );
 
       if (playerIndex === -1) {
-        break;
+        processedOnlineReveals += 1;
+        continue;
       }
 
       const hand = [
@@ -750,78 +891,92 @@
         reveal.card2
       ];
 
-      playerHands[playerIndex] = hand;
+      playerHands[playerIndex] =
+        hand;
 
       const result =
         PokerEvaluator.evaluateSeven(
-          hand.concat(communityCards)
+          hand.concat(
+            communityCards
+          )
         );
 
-      revealPrivateCards(playerIndex);
+      const shortCategory =
+        result.description
+          .split(" — ")[0];
 
-      if (processedOnlineReveals === 0) {
-        addHandResult(
-          playerIndex,
-          result,
-          "Waiting for the next hand…",
-          "pending-result"
-        );
-      } else {
+      let comparisonText =
+        "Waiting for the next hand…";
+
+      let statusClass =
+        "pending-result";
+
+      revealPrivateCards(
+        playerIndex
+      );
+
+      if (
+        processedOnlineReveals > 0
+      ) {
         const previousEntry =
           onlineRevealResults[
-            processedOnlineReveals - 1
+            processedOnlineReveals -
+            1
           ];
 
         const comparison =
           PokerEvaluator.compareScores(
             result.score,
-            previousEntry.result.score
+            previousEntry
+              .result.score
           );
 
         if (comparison > 0) {
-          addHandResult(
-            playerIndex,
-            result,
-            "✓ Correctly higher",
-            "correct-result"
-          );
+          comparisonText =
+            "✓ Correctly higher";
+
+          statusClass =
+            "correct-result";
 
           if (
-            processedOnlineReveals === 1
+            processedOnlineReveals ===
+            1
           ) {
             updateFirstResultStatus(
               "✓ Correctly lower",
               "correct-result"
             );
           }
-        } else if (comparison === 0) {
-          addHandResult(
-            playerIndex,
-            result,
-            "🤝 Tie — accepted",
-            "correct-result"
-          );
+        } else if (
+          comparison === 0
+        ) {
+          comparisonText =
+            "✓ Tie accepted";
+
+          statusClass =
+            "correct-result";
 
           if (
-            processedOnlineReveals === 1
+            processedOnlineReveals ===
+            1
           ) {
             updateFirstResultStatus(
-              "🤝 Tie — accepted",
+              "✓ Tie accepted",
               "correct-result"
             );
           }
         } else {
           onlineOrderCorrect = false;
 
-          addHandResult(
-            playerIndex,
-            result,
-            "✕ Out of order",
-            "wrong-result"
-          );
+          comparisonText =
+            "✕ Out of order";
+
+          statusClass =
+            "wrong-result";
 
           if (
-            processedOnlineReveals === 1
+            processedOnlineReveals ===
+            1
           ) {
             updateFirstResultStatus(
               "✕ Out of order",
@@ -829,6 +984,26 @@
             );
           }
         }
+      }
+
+      addHandResult(
+        playerIndex,
+        {
+          description:
+            shortCategory
+        },
+        comparisonText,
+        statusClass
+      );
+
+      if (
+        processedOnlineReveals > 0
+      ) {
+        const previousEntry =
+          onlineRevealResults[
+            processedOnlineReveals -
+            1
+          ];
 
         minimizeRevealedPlayer(
           previousEntry.playerIndex
@@ -842,16 +1017,12 @@
 
       processedOnlineReveals += 1;
 
-            const currentResultBox =
-        getPlayerSeat(playerIndex)
-          .querySelector(".hand-result");
+      window.clearTimeout(
+        notificationTimer
+      );
 
-      const comparisonText =
-        currentResultBox
-          .querySelector(".comparison")
-          .textContent;
-
-      notificationBanner.hidden = false;
+      notificationBanner.hidden =
+        false;
 
       notificationBanner.textContent =
         playerNames[playerIndex] +
@@ -880,16 +1051,23 @@
         state.nextUid
       );
 
-    if (state.nextUid === onlinePlayerUids[0]) {
+    if (
+      state.nextUid ===
+      onlinePlayerUids[0]
+    ) {
       advanceButton.disabled = false;
+
       advanceButton.textContent =
         "Reveal My Hand";
     } else {
       advanceButton.disabled = true;
+
       advanceButton.textContent =
         "Waiting for " +
         (
-          playerNames[nextPlayerIndex] ||
+          playerNames[
+            nextPlayerIndex
+          ] ||
           "next player"
         );
     }

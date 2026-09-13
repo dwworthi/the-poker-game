@@ -1,70 +1,106 @@
-const menuScreen = document.querySelector("#menu-screen");
-const gameScreen = document.querySelector("#game-screen");
-const rulesScreen = document.querySelector("#rules-screen");
-const setupScreen = document.querySelector("#setup-screen");
+const menuScreen =
+  document.querySelector("#menu-screen");
+
+const gameScreen =
+  document.querySelector("#game-screen");
+
+const rulesScreen =
+  document.querySelector("#rules-screen");
+
+const setupScreen =
+  document.querySelector("#setup-screen");
 
 const playerCountButtons = Array.from(
-  document.querySelectorAll("[data-player-count]")
+  document.querySelectorAll(
+    "[data-player-count]"
+  )
 );
 
-const previewOpponents = document.querySelector(
-  "#preview-opponents"
-);
+const previewOpponents =
+  document.querySelector(
+    "#preview-opponents"
+  );
 
-const previewDescription = document.querySelector(
-  "#preview-description"
-);
+const previewDescription =
+  document.querySelector(
+    "#preview-description"
+  );
 
-const continueGameButton = document.querySelector(
-  "#continue-game-button"
-);
+const continueGameButton =
+  document.querySelector(
+    "#continue-game-button"
+  );
 
-const startGameButton = document.querySelector(
-  "#start-game-button"
-);
+const startGameButton =
+  document.querySelector(
+    "#start-game-button"
+  );
 
-const howToPlayButton = document.querySelector(
-  "#how-to-play-button"
-);
+const howToPlayButton =
+  document.querySelector(
+    "#how-to-play-button"
+  );
 
-const backButtons = document.querySelectorAll(
-  ".back-button"
-);
+const backButtons =
+  document.querySelectorAll(
+    ".back-button"
+  );
 
 const playerSeats = Array.from(
-  document.querySelectorAll("[data-player]")
+  document.querySelectorAll(
+    "[data-player]"
+  )
 );
 
 const rankingTokens = Array.from(
-  document.querySelectorAll(".ranking-token")
+  document.querySelectorAll(
+    ".ranking-token"
+  )
 );
 
-const advanceButton = document.querySelector(
-  ".advance-button"
-);
+const advanceButton =
+  document.querySelector(
+    ".advance-button"
+  );
 
-const stageLabel = document.querySelector("#stage-label");
-const roundLabel = document.querySelector(".round-label");
+const stageLabel =
+  document.querySelector(
+    "#stage-label"
+  );
 
-const successScore = document.querySelector(
-  ".success-score strong"
-);
+const roundLabel =
+  document.querySelector(
+    ".round-label"
+  );
 
-const failureScore = document.querySelector(
-  ".failure-score strong"
-);
+const successScore =
+  document.querySelector(
+    ".success-score strong"
+  );
 
-const notificationBanner = document.querySelector(
-  "#notification-banner"
-);
+const failureScore =
+  document.querySelector(
+    ".failure-score strong"
+  );
 
-const communityCardElements = Array.from(
-  document.querySelectorAll(".community-cards .card")
-);
+const notificationBanner =
+  document.querySelector(
+    "#notification-banner"
+  );
 
-const yourCardElements = Array.from(
-  document.querySelectorAll(".your-hand .card")
-);
+const communityCardElements =
+  Array.from(
+    document.querySelectorAll(
+      ".community-cards .card"
+    )
+  );
+
+const yourCardElements =
+  Array.from(
+    document.querySelectorAll(
+      ".your-hand .card"
+    )
+  );
 
 const suits = [
   { symbol: "♠", color: "black" },
@@ -74,8 +110,8 @@ const suits = [
 ];
 
 const ranks = [
-  "2", "3", "4", "5", "6", "7", "8",
-  "9", "10", "J", "Q", "K", "A"
+  "2", "3", "4", "5", "6", "7",
+  "8", "9", "10", "J", "Q", "K", "A"
 ];
 
 const stages = [
@@ -108,24 +144,6 @@ const playerNames = [
   "Player 4"
 ];
 
-let activePlayerIndex = 0;
-let currentStageIndex = 0;
-let deck = [];
-let playerHands = [];
-let communityCards = [];
-let notificationTimer;
-let roundFinished = false;
-let isDealing = false;
-let evaluatedHands = [];
-let revealOrder = [];
-let revealedCount = 0;
-let teamOrderCorrect = true;
-let successfulRounds = 0;
-let failedRounds = 0;
-let roundNumber = 1;
-let gameOver = false;
-let roundScored = false;
-
 const playerRequests = [
   null,
   null,
@@ -147,6 +165,24 @@ const tokenHistory = [
   []
 ];
 
+let activePlayerIndex = 0;
+let currentStageIndex = 0;
+let deck = [];
+let playerHands = [];
+let communityCards = [];
+let notificationTimer;
+let roundFinished = false;
+let isDealing = false;
+let evaluatedHands = [];
+let revealOrder = [];
+let revealedCount = 0;
+let teamOrderCorrect = true;
+let successfulRounds = 0;
+let failedRounds = 0;
+let roundNumber = 1;
+let gameOver = false;
+let roundScored = false;
+
 function showScreen(screenToShow) {
   document
     .querySelectorAll("main > section")
@@ -159,19 +195,25 @@ function showScreen(screenToShow) {
 
 function showNotification(message) {
   notificationBanner.hidden = false;
-  notificationBanner.textContent = message;
+  notificationBanner.textContent =
+    message;
 
-  window.clearTimeout(notificationTimer);
+  window.clearTimeout(
+    notificationTimer
+  );
 
-  notificationTimer = window.setTimeout(function () {
-    if (window.pokerOnlineMode) {
-      notificationBanner.textContent = "";
-      notificationBanner.hidden = true;
-    } else {
-      notificationBanner.textContent =
-        "Tap a player to simulate their choice";
-    }
-  }, 2600);
+  notificationTimer =
+    window.setTimeout(function () {
+      if (window.pokerOnlineMode) {
+        notificationBanner.textContent =
+          "";
+
+        notificationBanner.hidden = true;
+      } else {
+        notificationBanner.textContent =
+          "Tap a player to simulate their choice";
+      }
+    }, 2600);
 }
 
 function createDeck() {
@@ -192,107 +234,35 @@ function createDeck() {
 
 function shuffleDeck(cards) {
   for (
-    let currentIndex = cards.length - 1;
-    currentIndex > 0;
-    currentIndex -= 1
+    let index = cards.length - 1;
+    index > 0;
+    index -= 1
   ) {
     const randomIndex = Math.floor(
-      Math.random() * (currentIndex + 1)
+      Math.random() * (index + 1)
     );
 
-    const temporaryCard = cards[currentIndex];
+    const temporaryCard =
+      cards[index];
 
-    cards[currentIndex] = cards[randomIndex];
-    cards[randomIndex] = temporaryCard;
+    cards[index] =
+      cards[randomIndex];
+
+    cards[randomIndex] =
+      temporaryCard;
   }
 
   return cards;
 }
 
-function dealNewRound() {
-  deck = shuffleDeck(createDeck());
-  playerHands = [[], [], [], []];
-
-  for (
-    let cardNumber = 0;
-    cardNumber < 2;
-    cardNumber += 1
-  ) {
-    for (
-      let playerIndex = 0;
-      playerIndex < playerHands.length;
-      playerIndex += 1
-    ) {
-      playerHands[playerIndex].push(deck.pop());
-    }
+function displayCard(
+  cardElement,
+  card
+) {
+  if (!card) {
+    return;
   }
 
-  communityCards = [
-    deck.pop(),
-    deck.pop(),
-    deck.pop(),
-    deck.pop(),
-    deck.pop()
-  ];
-
-  activePlayerIndex = 0;
-  currentStageIndex = 0;
-  roundFinished = false;
-  evaluatedHands = [];
-  revealOrder = [];
-  revealedCount = 0;
-  teamOrderCorrect = true;
-  roundScored = false;
-
-    gameScreen.classList.remove("results-active");
-
-  document
-    .querySelectorAll(".reveal-minimized")
-    .forEach(function (seat) {
-      seat.classList.remove("reveal-minimized");
-    });
-
-  document
-    .querySelectorAll(".hand-result")
-    .forEach(function (result) {
-      result.remove();
-    });
-
-  document
-    .querySelectorAll(".hidden-hand .card")
-    .forEach(function (card) {
-      card.replaceChildren();
-      card.className = "card card-back";
-    });
-
-  playerRequests.fill(null);
-  playerConfirmations.fill(false);
-
-  tokenHistory.forEach(function (history) {
-    history.length = 0;
-  });
-
-  renderPlayerHands();
-  renderCommunityCards();
-  renderTokenSystem();
-
-  showNotification(
-    "Cards dealt — choose the white tokens"
-  );
-}
-
-function updateScoreDisplay() {
-  successScore.textContent =
-    successfulRounds + " / 3";
-
-  failureScore.textContent =
-    failedRounds + " / 3";
-
-  roundLabel.textContent =
-    "Round " + roundNumber;
-}
-
-function displayCard(cardElement, card) {
   cardElement.replaceChildren();
 
   const rankElement =
@@ -304,11 +274,18 @@ function displayCard(cardElement, card) {
   rankElement.textContent = card.rank;
   suitElement.textContent = card.suit;
 
-  cardElement.appendChild(rankElement);
-  cardElement.appendChild(suitElement);
+  cardElement.appendChild(
+    rankElement
+  );
 
-  cardElement.classList.remove("card-slot");
-  cardElement.classList.remove("card-back");
+  cardElement.appendChild(
+    suitElement
+  );
+
+  cardElement.classList.remove(
+    "card-slot",
+    "card-back"
+  );
 
   cardElement.classList.toggle(
     "red-card",
@@ -316,52 +293,78 @@ function displayCard(cardElement, card) {
   );
 }
 
-function hideCommunityCard(cardElement) {
+function hideCommunityCard(
+  cardElement
+) {
   cardElement.replaceChildren();
   cardElement.textContent = "?";
 
-  cardElement.classList.add("card-slot");
-  cardElement.classList.remove("red-card");
+  cardElement.classList.add(
+    "card-slot"
+  );
+
+  cardElement.classList.remove(
+    "red-card",
+    "card-back"
+  );
 }
 
 function renderPlayerHands() {
-  yourCardElements.forEach(function (
-    cardElement,
-    cardIndex
-  ) {
-    displayCard(
+  yourCardElements.forEach(
+    function (
       cardElement,
-      playerHands[0][cardIndex]
-    );
-  });
+      cardIndex
+    ) {
+      const card =
+        playerHands[0] &&
+        playerHands[0][cardIndex];
+
+      if (card) {
+        displayCard(
+          cardElement,
+          card
+        );
+      }
+    }
+  );
 }
 
 function renderCommunityCards() {
   const currentStage =
     stages[currentStageIndex];
 
-  communityCardElements.forEach(function (
-    cardElement,
-    cardIndex
-  ) {
-    if (
-      cardIndex <
-      currentStage.visibleCards
+  communityCardElements.forEach(
+    function (
+      cardElement,
+      cardIndex
     ) {
-      displayCard(
-        cardElement,
-        communityCards[cardIndex]
-      );
-    } else {
-      hideCommunityCard(cardElement);
+      const card =
+        communityCards[cardIndex];
+
+      if (
+        cardIndex <
+          currentStage.visibleCards &&
+        card
+      ) {
+        displayCard(
+          cardElement,
+          card
+        );
+      } else {
+        hideCommunityCard(
+          cardElement
+        );
+      }
     }
-  });
+  );
 
   stageLabel.textContent =
     currentStage.name;
 }
 
-function getTokenSpace(playerIndex) {
+function getTokenSpace(
+  playerIndex
+) {
   return document.querySelector(
     '[data-token-space="' +
     playerIndex +
@@ -371,9 +374,11 @@ function getTokenSpace(playerIndex) {
 
 function requestsAreSettled() {
   if (
-    playerRequests.some(function (request) {
-      return request === null;
-    })
+    playerRequests.some(
+      function (request) {
+        return request === null;
+      }
+    )
   ) {
     return false;
   }
@@ -407,80 +412,96 @@ function createHistoryToken(entry) {
 }
 
 function renderTokenHistory() {
-  tokenHistory.forEach(function (
-    history,
-    playerIndex
-  ) {
-    const tokenSpace =
-      getTokenSpace(playerIndex);
+  tokenHistory.forEach(
+    function (
+      history,
+      playerIndex
+    ) {
+      const tokenSpace =
+        getTokenSpace(playerIndex);
 
-    tokenSpace.replaceChildren();
+      if (!tokenSpace) {
+        return;
+      }
 
-    if (history.length === 0) {
-      tokenSpace.textContent = "—";
+      tokenSpace.replaceChildren();
 
-      tokenSpace.classList.remove(
+      if (history.length === 0) {
+        tokenSpace.textContent = "—";
+
+        tokenSpace.classList.remove(
+          "has-history"
+        );
+
+        return;
+      }
+
+      tokenSpace.classList.add(
         "has-history"
       );
 
-      return;
-    }
-
-    tokenSpace.classList.add(
-      "has-history"
-    );
-
-    history.forEach(function (entry) {
-      tokenSpace.appendChild(
-        createHistoryToken(entry)
+      history.forEach(
+        function (entry) {
+          tokenSpace.appendChild(
+            createHistoryToken(entry)
+          );
+        }
       );
-    });
-  });
+    }
+  );
 }
 
 function renderTokenRequests() {
   const currentColor =
     stages[currentStageIndex].color;
 
-  rankingTokens.forEach(function (button) {
-    const tokenNumber = Number(
-      button.dataset.tokenNumber ||
-      button.textContent
-    );
+  rankingTokens.forEach(
+    function (button) {
+      const tokenNumber = Number(
+        button.dataset.tokenNumber ||
+        button.textContent
+      );
 
-    button.dataset.tokenNumber =
-      tokenNumber;
+      button.dataset.tokenNumber =
+        tokenNumber;
 
-    const requesters = [];
+      const requesters = [];
 
-    playerRequests.forEach(function (
-      requestedToken,
-      playerIndex
-    ) {
-      if (
-        requestedToken === tokenNumber
-      ) {
-        requesters.push(
-          playerNames[playerIndex]
-        );
+      playerRequests.forEach(
+        function (
+          request,
+          playerIndex
+        ) {
+          if (request === tokenNumber) {
+            requesters.push(
+              playerNames[playerIndex]
+            );
+          }
+        }
+      );
+
+      button.replaceChildren();
+
+      const number =
+        document.createElement("span");
+
+      number.className =
+        "token-number";
+
+      number.textContent =
+        tokenNumber;
+
+      button.appendChild(number);
+
+      button.className =
+        "ranking-token stage-token " +
+        "token-" +
+        currentColor;
+
+      if (requesters.length === 0) {
+        return;
       }
-    });
 
-    button.replaceChildren();
-
-    const number =
-      document.createElement("span");
-
-    number.className = "token-number";
-    number.textContent = tokenNumber;
-
-    button.appendChild(number);
-
-    button.className =
-      "ranking-token stage-token token-" +
-      currentColor;
-
-    if (requesters.length > 0) {
       button.classList.add(
         "wanted-token"
       );
@@ -491,56 +512,58 @@ function renderTokenRequests() {
       requestText.className =
         "token-request-text";
 
-      const shortNames =
-        requesters.map(function (name) {
-          if (name === "You") {
-            return "You";
-          }
+      requesters.forEach(
+        function (fullName) {
+          const requesterLine =
+            document.createElement(
+              "span"
+            );
 
-          return name.replace(
-            "Player ",
-            "P"
+          requesterLine.className =
+            "token-request-name";
+
+          let shortName =
+            fullName === "You"
+              ? "You"
+              : fullName
+                  .replace(
+                    "Player ",
+                    "P"
+                  )
+                  .split(" ")[0]
+                  .slice(0, 7);
+
+          requesterLine.textContent =
+            shortName + " wants";
+
+          requestText.appendChild(
+            requesterLine
           );
-        });
+        }
+      );
 
-            const compactNames =
-        shortNames.map(function (name) {
-          return name
-            .split(" ")[0]
-            .slice(0, 7);
-        });
-
-            compactNames.forEach(function (name) {
-        const requesterLine =
-          document.createElement("span");
-
-        requesterLine.className =
-          "token-request-name";
-
-        requesterLine.textContent =
-          name + " wants";
-
-        requestText.appendChild(
-          requesterLine
-        );
-      });
-
-      button.appendChild(requestText);
+      button.appendChild(
+        requestText
+      );
     }
-  });
+  );
 }
 
 function renderActivePlayer() {
-  playerSeats.forEach(function (seat) {
-    const playerIndex = Number(
-      seat.dataset.player
-    );
+  playerSeats.forEach(
+    function (seat) {
+      const playerIndex = Number(
+        seat.dataset.player
+      );
 
-    seat.classList.toggle(
-      "active-player",
-      playerIndex === activePlayerIndex
-    );
-  });
+      seat.classList.toggle(
+        "active-player",
+        !window.pokerOnlineMode &&
+        playerIndex ===
+          activePlayerIndex
+      );
+    }
+  );
 }
 
 function updateConfirmationButton() {
@@ -552,14 +575,11 @@ function updateConfirmationButton() {
       const nextPlayer =
         revealOrder[revealedCount];
 
-      const nextToken =
-        playerRequests[nextPlayer];
-
       advanceButton.disabled = false;
 
       advanceButton.textContent =
         "Reveal Token " +
-        nextToken +
+        playerRequests[nextPlayer] +
         " — " +
         playerNames[nextPlayer];
     } else if (gameOver) {
@@ -578,19 +598,17 @@ function updateConfirmationButton() {
   if (!requestsAreSettled()) {
     advanceButton.disabled = true;
 
-    if (
+    const someoneMissing =
       playerRequests.some(
         function (request) {
           return request === null;
         }
-      )
-    ) {
-      advanceButton.textContent =
-        "Everyone Must Choose a Token";
-    } else {
-      advanceButton.textContent =
-        "Players Want the Same Token";
-    }
+      );
+
+    advanceButton.textContent =
+      someoneMissing
+        ? "Everyone Must Choose a Token"
+        : "Players Want the Same Token";
 
     return;
   }
@@ -628,11 +646,12 @@ function chooseToken(tokenNumber) {
     return;
   }
 
-  if (
+  const currentRequest =
     playerRequests[
       activePlayerIndex
-    ] === tokenNumber
-  ) {
+    ];
+
+  if (currentRequest === tokenNumber) {
     playerRequests[
       activePlayerIndex
     ] = null;
@@ -660,8 +679,8 @@ function chooseToken(tokenNumber) {
 
 function everyoneConfirmed() {
   return playerConfirmations.every(
-    function (isConfirmed) {
-      return isConfirmed;
+    function (confirmed) {
+      return confirmed;
     }
   );
 }
@@ -670,16 +689,18 @@ function settleCurrentStage() {
   const completedStage =
     stages[currentStageIndex];
 
-  playerRequests.forEach(function (
-    tokenNumber,
-    playerIndex
-  ) {
-    tokenHistory[playerIndex].push({
-      number: tokenNumber,
-      color: completedStage.color,
-      stage: completedStage.name
-    });
-  });
+  playerRequests.forEach(
+    function (
+      tokenNumber,
+      playerIndex
+    ) {
+      tokenHistory[playerIndex].push({
+        number: tokenNumber,
+        color: completedStage.color,
+        stage: completedStage.name
+      });
+    }
+  );
 
   if (
     currentStageIndex ===
@@ -733,7 +754,9 @@ function confirmCurrentPlayer() {
   }
 }
 
-function getPlayerSeat(playerIndex) {
+function getPlayerSeat(
+  playerIndex
+) {
   return document.querySelector(
     '[data-player="' +
     playerIndex +
@@ -742,20 +765,26 @@ function getPlayerSeat(playerIndex) {
 }
 
 function prepareResults() {
-  evaluatedHands = playerHands.map(
-    function (hand) {
-      return PokerEvaluator.evaluateSeven(
-        hand.concat(communityCards)
-      );
-    }
-  );
+  evaluatedHands =
+    playerHands.map(
+      function (hand) {
+        return PokerEvaluator
+          .evaluateSeven(
+            hand.concat(
+              communityCards
+            )
+          );
+      }
+    );
 
-  revealOrder = [
-    0,
-    1,
-    2,
-    3
-  ].sort(function (first, second) {
+  revealOrder = Array.from(
+    {
+      length: playerHands.length
+    },
+    function (_, playerIndex) {
+      return playerIndex;
+    }
+  ).sort(function (first, second) {
     return (
       playerRequests[first] -
       playerRequests[second]
@@ -765,7 +794,8 @@ function prepareResults() {
   revealedCount = 0;
   teamOrderCorrect = true;
 
-  stageLabel.textContent = "Showdown";
+  stageLabel.textContent =
+    "Showdown";
 
   gameScreen.classList.add(
     "results-active"
@@ -776,7 +806,9 @@ function prepareResults() {
   );
 }
 
-function revealPrivateCards(playerIndex) {
+function revealPrivateCards(
+  playerIndex
+) {
   if (playerIndex === 0) {
     return;
   }
@@ -790,19 +822,30 @@ function revealPrivateCards(playerIndex) {
     )
   );
 
-  cardElements.forEach(function (
-    cardElement,
-    cardIndex
-  ) {
-    displayCard(
+  cardElements.forEach(
+    function (
       cardElement,
-      playerHands[playerIndex][cardIndex]
-    );
+      cardIndex
+    ) {
+      const card =
+        playerHands[playerIndex][
+          cardIndex
+        ];
 
-    cardElement.classList.add(
-      "result-card-flip"
-    );
-  });
+      if (!card) {
+        return;
+      }
+
+      displayCard(
+        cardElement,
+        card
+      );
+
+      cardElement.classList.add(
+        "result-card-flip"
+      );
+    }
+  );
 }
 
 function addHandResult(
@@ -815,7 +858,9 @@ function addHandResult(
     getPlayerSeat(playerIndex);
 
   let resultBox =
-    seat.querySelector(".hand-result");
+    seat.querySelector(
+      ".hand-result"
+    );
 
   if (!resultBox) {
     resultBox =
@@ -826,6 +871,10 @@ function addHandResult(
 
     seat.appendChild(resultBox);
   }
+
+  resultBox.classList.remove(
+    "minimized-result"
+  );
 
   resultBox.replaceChildren();
 
@@ -839,7 +888,8 @@ function addHandResult(
     document.createElement("span");
 
   comparison.className =
-    "comparison " + statusClass;
+    "comparison " +
+    statusClass;
 
   comparison.textContent = message;
 
@@ -852,37 +902,96 @@ function updateFirstResultStatus(
   statusClass
 ) {
   const firstPlayer =
-    revealOrder[0];
+    revealOrder.length > 0
+      ? revealOrder[0]
+      : onlineRevealFirstPlayer();
 
-  const box = getPlayerSeat(
-    firstPlayer
-  ).querySelector(".hand-result");
+  if (
+    firstPlayer === null ||
+    firstPlayer === undefined
+  ) {
+    return;
+  }
+
+  const box =
+    getPlayerSeat(firstPlayer)
+      .querySelector(
+        ".hand-result"
+      );
 
   if (!box) {
     return;
   }
 
   const comparison =
-    box.querySelector(".comparison");
+    box.querySelector(
+      ".comparison"
+    );
+
+  if (!comparison) {
+    return;
+  }
 
   comparison.className =
-    "comparison " + statusClass;
+    "comparison " +
+    statusClass;
 
-  comparison.textContent = message;
+  comparison.textContent =
+    message;
 }
-function minimizeRevealedPlayer(playerIndex) {
-  const seat = getPlayerSeat(playerIndex);
-  const resultBox = seat.querySelector(".hand-result");
+
+function onlineRevealFirstPlayer() {
+  const result =
+    document.querySelector(
+      ".hand-result"
+    );
+
+  if (!result) {
+    return null;
+  }
+
+  const seat = result.closest(
+    "[data-player]"
+  );
+
+  return seat
+    ? Number(seat.dataset.player)
+    : null;
+}
+
+function minimizeRevealedPlayer(
+  playerIndex
+) {
+  const seat =
+    getPlayerSeat(playerIndex);
+
+  const resultBox =
+    seat.querySelector(
+      ".hand-result"
+    );
 
   if (!resultBox) {
     return;
   }
 
+  const description =
+    resultBox.querySelector("strong");
+
   const comparison =
-    resultBox.querySelector(".comparison");
+    resultBox.querySelector(
+      ".comparison"
+    );
+
+  const category = description
+    ? description.textContent
+        .split(" — ")[0]
+    : "Hand";
 
   const wasWrong =
-    comparison.classList.contains("wrong-result");
+    comparison &&
+    comparison.classList.contains(
+      "wrong-result"
+    );
 
   resultBox.replaceChildren();
 
@@ -893,18 +1002,28 @@ function minimizeRevealedPlayer(playerIndex) {
     ? "minimized-status wrong-result"
     : "minimized-status correct-result";
 
-  smallResult.textContent = wasWrong
-    ? "✕"
-    : "✓";
+  smallResult.textContent =
+    (wasWrong ? "✕ " : "✓ ") +
+    category;
 
-  resultBox.appendChild(smallResult);
-  resultBox.classList.add("minimized-result");
-  seat.classList.add("reveal-minimized");
+  resultBox.appendChild(
+    smallResult
+  );
+
+  resultBox.classList.add(
+    "minimized-result"
+  );
+
+  seat.classList.add(
+    "reveal-minimized"
+  );
 }
+
 function revealNextHand() {
   if (
     !roundFinished ||
-    revealedCount >= revealOrder.length
+    revealedCount >=
+      revealOrder.length
   ) {
     return;
   }
@@ -914,9 +1033,6 @@ function revealNextHand() {
 
   const result =
     evaluatedHands[playerIndex];
-
-  const tokenNumber =
-    playerRequests[playerIndex];
 
   revealPrivateCards(playerIndex);
 
@@ -929,7 +1045,9 @@ function revealNextHand() {
     );
   } else {
     const previousPlayer =
-      revealOrder[revealedCount - 1];
+      revealOrder[
+        revealedCount - 1
+      ];
 
     const comparison =
       PokerEvaluator.compareScores(
@@ -957,13 +1075,13 @@ function revealNextHand() {
       addHandResult(
         playerIndex,
         result,
-        "🤝 Tie — accepted",
+        "✓ Tie accepted",
         "correct-result"
       );
 
       if (revealedCount === 1) {
         updateFirstResultStatus(
-          "🤝 Tie — accepted",
+          "✓ Tie accepted",
           "correct-result"
         );
       }
@@ -984,11 +1102,6 @@ function revealNextHand() {
         );
       }
     }
-  }
-
-    if (revealedCount > 0) {
-    const previousPlayer =
-      revealOrder[revealedCount - 1];
 
     minimizeRevealedPlayer(
       previousPlayer
@@ -998,9 +1111,6 @@ function revealNextHand() {
   revealedCount += 1;
 
   showNotification(
-    "Token " +
-    tokenNumber +
-    ": " +
     playerNames[playerIndex] +
     " — " +
     result.description
@@ -1041,7 +1151,9 @@ function finishRound() {
       showNotification(
         "🏆 Your team won The Poker Game!"
       );
-    } else if (failedRounds >= 3) {
+    } else if (
+      failedRounds >= 3
+    ) {
       showNotification(
         "Three failed rounds — game over"
       );
@@ -1053,6 +1165,317 @@ function finishRound() {
       );
     }
   }, 500);
+}
+
+function updateScoreDisplay() {
+  successScore.textContent =
+    successfulRounds + " / 3";
+
+  failureScore.textContent =
+    failedRounds + " / 3";
+
+  roundLabel.textContent =
+    "Round " + roundNumber;
+}
+
+function dealNewRound() {
+  deck = shuffleDeck(createDeck());
+
+  playerHands = [
+    [],
+    [],
+    [],
+    []
+  ];
+
+  for (
+    let cardNumber = 0;
+    cardNumber < 2;
+    cardNumber += 1
+  ) {
+    for (
+      let playerIndex = 0;
+      playerIndex <
+        playerHands.length;
+      playerIndex += 1
+    ) {
+      playerHands[playerIndex].push(
+        deck.pop()
+      );
+    }
+  }
+
+  communityCards = [
+    deck.pop(),
+    deck.pop(),
+    deck.pop(),
+    deck.pop(),
+    deck.pop()
+  ];
+
+  activePlayerIndex = 0;
+  currentStageIndex = 0;
+  roundFinished = false;
+  evaluatedHands = [];
+  revealOrder = [];
+  revealedCount = 0;
+  teamOrderCorrect = true;
+  roundScored = false;
+
+  gameScreen.classList.remove(
+    "results-active"
+  );
+
+  document
+    .querySelectorAll(
+      ".reveal-minimized"
+    )
+    .forEach(function (seat) {
+      seat.classList.remove(
+        "reveal-minimized"
+      );
+    });
+
+  document
+    .querySelectorAll(
+      ".hand-result"
+    )
+    .forEach(function (result) {
+      result.remove();
+    });
+
+  document
+    .querySelectorAll(
+      ".hidden-hand .card"
+    )
+    .forEach(function (card) {
+      card.replaceChildren();
+      card.className =
+        "card card-back";
+    });
+
+  playerRequests.fill(null);
+  playerConfirmations.fill(false);
+
+  tokenHistory.forEach(
+    function (history) {
+      history.length = 0;
+    }
+  );
+
+  renderPlayerHands();
+  renderCommunityCards();
+  renderTokenSystem();
+}
+
+function getOpeningDealTargets() {
+  const targets = [];
+
+  for (
+    let cardIndex = 0;
+    cardIndex < 2;
+    cardIndex += 1
+  ) {
+    for (
+      let playerIndex = 0;
+      playerIndex < 4;
+      playerIndex += 1
+    ) {
+      if (playerIndex === 0) {
+        targets.push(
+          yourCardElements[
+            cardIndex
+          ]
+        );
+      } else {
+        const playerSeat =
+          getPlayerSeat(
+            playerIndex
+          );
+
+        const cards = Array.from(
+          playerSeat.querySelectorAll(
+            ".hidden-hand .card"
+          )
+        );
+
+        targets.push(
+          cards[cardIndex]
+        );
+      }
+    }
+  }
+
+  return targets;
+}
+
+function prepareOpeningDeal() {
+  getOpeningDealTargets()
+    .forEach(function (target) {
+      target.style.visibility =
+        "hidden";
+    });
+}
+
+function wait(milliseconds) {
+  return new Promise(
+    function (resolve) {
+      window.setTimeout(
+        resolve,
+        milliseconds
+      );
+    }
+  );
+}
+
+function sendCardToTarget(
+  deckCard,
+  target
+) {
+  return new Promise(
+    function (resolve) {
+      const deckPosition =
+        deckCard
+          .getBoundingClientRect();
+
+      const targetPosition =
+        target
+          .getBoundingClientRect();
+
+      const flyingCard =
+        document.createElement("div");
+
+      flyingCard.className =
+        "card card-back flying-card";
+
+      flyingCard.style.left =
+        deckPosition.left + "px";
+
+      flyingCard.style.top =
+        deckPosition.top + "px";
+
+      flyingCard.style.width =
+        deckPosition.width + "px";
+
+      flyingCard.style.height =
+        deckPosition.height + "px";
+
+      document.body.appendChild(
+        flyingCard
+      );
+
+      const moveX =
+        targetPosition.left -
+        deckPosition.left;
+
+      const moveY =
+        targetPosition.top -
+        deckPosition.top;
+
+      const growX =
+        targetPosition.width /
+        deckPosition.width;
+
+      const growY =
+        targetPosition.height /
+        deckPosition.height;
+
+      const animation =
+        flyingCard.animate(
+          [
+            {
+              transform:
+                "translate(0, 0) scale(1)",
+              opacity: 1
+            },
+            {
+              transform:
+                "translate(" +
+                moveX +
+                "px, " +
+                moveY +
+                "px) scale(" +
+                growX +
+                ", " +
+                growY +
+                ")",
+              opacity: 1
+            }
+          ],
+          {
+            duration: 320,
+            easing: "ease-out",
+            fill: "forwards"
+          }
+        );
+
+      animation.onfinish =
+        function () {
+          flyingCard.remove();
+
+          target.style.visibility =
+            "visible";
+
+          target.classList.add(
+            "card-arrival"
+          );
+
+          window.setTimeout(
+            function () {
+              target.classList.remove(
+                "card-arrival"
+              );
+            },
+            300
+          );
+
+          resolve();
+        };
+    }
+  );
+}
+
+async function animateOpeningDeal() {
+  if (isDealing) {
+    return;
+  }
+
+  isDealing = true;
+
+  gameScreen.classList.add(
+    "dealing"
+  );
+
+  const deckCard =
+    document.querySelector(
+      ".deck-pile .card"
+    );
+
+  const targets =
+    getOpeningDealTargets();
+
+  showNotification(
+    "Dealing cards…"
+  );
+
+  for (const target of targets) {
+    await sendCardToTarget(
+      deckCard,
+      target
+    );
+
+    await wait(65);
+  }
+
+  gameScreen.classList.remove(
+    "dealing"
+  );
+
+  isDealing = false;
+
+  showNotification(
+    "Cards dealt — choose the white tokens"
+  );
 }
 
 function beginRoundWithAnimation() {
@@ -1084,286 +1507,57 @@ function startNextRound() {
   beginRoundWithAnimation();
 }
 
-function getOpeningDealTargets() {
-  const targets = [];
-
-  for (
-    let cardIndex = 0;
-    cardIndex < 2;
-    cardIndex += 1
-  ) {
-    for (
-      let playerIndex = 0;
-      playerIndex < 4;
-      playerIndex += 1
-    ) {
-      if (playerIndex === 0) {
-        targets.push(
-          yourCardElements[cardIndex]
-        );
-      } else {
-        const playerSeat =
-          document.querySelector(
-            '[data-player="' +
-            playerIndex +
-            '"]'
-          );
-
-        const playerCards =
-          Array.from(
-            playerSeat.querySelectorAll(
-              ".hidden-hand .card"
-            )
-          );
-
-        targets.push(
-          playerCards[cardIndex]
-        );
-      }
-    }
-  }
-
-  return targets;
-}
-
-function prepareOpeningDeal() {
-  const targets =
-    getOpeningDealTargets();
-
-  targets.forEach(function (target) {
-    target.style.visibility =
-      "hidden";
-  });
-}
-
-function wait(milliseconds) {
-  return new Promise(function (resolve) {
-    window.setTimeout(
-      resolve,
-      milliseconds
-    );
-  });
-}
-
-function sendCardToTarget(
-  deckCard,
-  target
+function renderPlayerCountPreview(
+  playerCount
 ) {
-  return new Promise(function (resolve) {
-    const deckPosition =
-      deckCard.getBoundingClientRect();
-
-    const targetPosition =
-      target.getBoundingClientRect();
-
-    const flyingCard =
-      document.createElement("div");
-
-    flyingCard.className =
-      "card card-back flying-card";
-
-    flyingCard.style.left =
-      deckPosition.left + "px";
-
-    flyingCard.style.top =
-      deckPosition.top + "px";
-
-    flyingCard.style.width =
-      deckPosition.width + "px";
-
-    flyingCard.style.height =
-      deckPosition.height + "px";
-
-    document.body.appendChild(
-      flyingCard
-    );
-
-    const moveX =
-      targetPosition.left -
-      deckPosition.left;
-
-    const moveY =
-      targetPosition.top -
-      deckPosition.top;
-
-    const growX =
-      targetPosition.width /
-      deckPosition.width;
-
-    const growY =
-      targetPosition.height /
-      deckPosition.height;
-
-    const animation =
-      flyingCard.animate(
-        [
-          {
-            transform:
-              "translate(0, 0) scale(1)",
-            opacity: 1
-          },
-          {
-            transform:
-              "translate(" +
-              moveX +
-              "px, " +
-              moveY +
-              "px) scale(" +
-              growX +
-              ", " +
-              growY +
-              ")",
-            opacity: 1
-          }
-        ],
-        {
-          duration: 320,
-          easing: "ease-out",
-          fill: "forwards"
-        }
-      );
-
-    animation.onfinish =
-      function () {
-        flyingCard.remove();
-
-        target.style.visibility =
-          "visible";
-
-        target.classList.add(
-          "card-arrival"
-        );
-
-        window.setTimeout(
-          function () {
-            target.classList.remove(
-              "card-arrival"
-            );
-          },
-          300
-        );
-
-        resolve();
-      };
-  });
-}
-
-async function animateOpeningDeal() {
-  if (isDealing) {
-    return;
-  }
-
-  isDealing = true;
-
-  gameScreen.classList.add(
-    "dealing"
-  );
-
-  const deckCard =
-    document.querySelector(
-      ".deck-pile .card"
-    );
-
-  const targets =
-    getOpeningDealTargets();
-
-  showNotification("Dealing cards…");
-
-  for (const target of targets) {
-    await sendCardToTarget(
-      deckCard,
-      target
-    );
-
-    await wait(65);
-  }
-
-  gameScreen.classList.remove(
-    "dealing"
-  );
-
-  isDealing = false;
-
-  showNotification(
-    "Cards dealt — choose the white tokens"
-  );
-}
-
-function renderPlayerCountPreview(playerCount) {
-  previewOpponents.replaceChildren();
-
-  previewOpponents.className =
-    "preview-opponents count-" + playerCount;
-
-  for (
-    let playerNumber = 2;
-    playerNumber <= playerCount;
-    playerNumber += 1
-  ) {
-    const player = document.createElement("div");
-    player.className = "preview-player";
-
-    player.innerHTML =
-      '<div class="preview-player-name">Player ' +
-      playerNumber +
-      '</div>' +
-      '<div class="preview-card-pair">' +
-      '<span class="preview-card"></span>' +
-      '<span class="preview-card"></span>' +
-      '</div>' +
-      '<div class="preview-token-space"></div>';
-
-    previewOpponents.appendChild(player);
-  }
-
   previewDescription.textContent =
     playerCount +
-    " players: " +
-    (playerCount - 1) +
-    " opponents and you";
+    " players will be seated around the table.";
 
-  document
-    .querySelectorAll(".preview-tokens span")
-    .forEach(function (token, tokenIndex) {
-      token.hidden =
-        tokenIndex >= playerCount;
-    });
+  playerCountButtons.forEach(
+    function (button) {
+      button.classList.toggle(
+        "selected-count",
+        Number(
+          button.dataset.playerCount
+        ) === playerCount
+      );
+    }
+  );
 
-  playerCountButtons.forEach(function (button) {
-    button.classList.toggle(
-      "selected-count",
-      Number(button.dataset.playerCount) ===
-        playerCount
-    );
-  });
+  continueGameButton.disabled =
+    false;
 
-  if (playerCount === 4) {
-    continueGameButton.disabled = false;
-    continueGameButton.textContent =
-      "Start 4-Player Game";
-  } else {
-    continueGameButton.disabled = true;
-    continueGameButton.textContent =
-      playerCount +
-      "-Player Logic Coming Next";
-  }
+  continueGameButton.textContent =
+    "Start " +
+    playerCount +
+    "-Player Game";
 }
 
 startGameButton.addEventListener(
   "click",
   function () {
+    window.pokerOnlineMode = false;
+
     renderPlayerCountPreview(4);
     showScreen(setupScreen);
   }
 );
 
-playerCountButtons.forEach(function (button) {
-  button.addEventListener("click", function () {
-    renderPlayerCountPreview(
-      Number(button.dataset.playerCount)
+playerCountButtons.forEach(
+  function (button) {
+    button.addEventListener(
+      "click",
+      function () {
+        renderPlayerCountPreview(
+          Number(
+            button.dataset.playerCount
+          )
+        );
+      }
     );
-  });
-});
+  }
+);
 
 continueGameButton.addEventListener(
   "click",
@@ -1379,52 +1573,74 @@ howToPlayButton.addEventListener(
   }
 );
 
-backButtons.forEach(function (button) {
-  button.addEventListener(
-    "click",
-    function () {
-      showScreen(menuScreen);
-    }
-  );
-});
+backButtons.forEach(
+  function (button) {
+    button.addEventListener(
+      "click",
+      function () {
+        showScreen(menuScreen);
+      }
+    );
+  }
+);
 
-playerSeats.forEach(function (seat) {
-  seat.addEventListener(
-    "click",
-    function () {
-      activePlayerIndex = Number(
-        seat.dataset.player
-      );
+playerSeats.forEach(
+  function (seat) {
+    seat.addEventListener(
+      "click",
+      function () {
+        if (window.pokerOnlineMode) {
+          return;
+        }
 
-      renderActivePlayer();
-      updateConfirmationButton();
+        activePlayerIndex = Number(
+          seat.dataset.player
+        );
 
-      showNotification(
-        "Testing as " +
-        playerNames[activePlayerIndex]
-      );
-    }
-  );
-});
+        renderActivePlayer();
+        updateConfirmationButton();
 
-rankingTokens.forEach(function (button) {
-  button.addEventListener(
-    "click",
-    function (event) {
-      event.stopPropagation();
+        showNotification(
+          "Testing as " +
+          playerNames[
+            activePlayerIndex
+          ]
+        );
+      }
+    );
+  }
+);
 
-      chooseToken(
-        Number(
-          button.dataset.tokenNumber
-        )
-      );
-    }
-  );
-});
+rankingTokens.forEach(
+  function (button) {
+    button.addEventListener(
+      "click",
+      function (event) {
+        event.stopPropagation();
+
+        if (window.pokerOnlineMode) {
+          return;
+        }
+
+        chooseToken(
+          Number(
+            button.dataset
+              .tokenNumber ||
+            button.textContent
+          )
+        );
+      }
+    );
+  }
+);
 
 advanceButton.addEventListener(
   "click",
   function () {
+    if (window.pokerOnlineMode) {
+      return;
+    }
+
     if (roundFinished) {
       if (
         revealedCount <
@@ -1443,4 +1659,3 @@ advanceButton.addEventListener(
 );
 
 updateScoreDisplay();
-renderTokenSystem();
