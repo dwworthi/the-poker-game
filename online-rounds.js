@@ -49,10 +49,8 @@
   }
 
   function updateRoundButton() {
-    if (
+        if (
       !currentScore ||
-      currentOnlineStage !==
-        "showdown" ||
       !roundHasBeenScored(
         currentScore
       )
