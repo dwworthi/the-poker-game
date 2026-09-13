@@ -2,7 +2,10 @@
   "use strict";
 
     let selectedPlayerCount = 4;
-  let onlinePlayerUids = [];
+    let onlinePlayerUids = [];
+  let processedOnlineReveals = 0;
+  let onlineRevealResults = [];
+  let onlineOrderCorrect = true;
 
   const countButtons = Array.from(
     document.querySelectorAll("[data-player-count]")
@@ -453,7 +456,9 @@
   ) {
     onlinePlayerUids =
       localPlayerUids.slice();
-    window.pokerOnlineMode = true;
+        processedOnlineReveals = 0;
+    onlineRevealResults = [];
+    onlineOrderCorrect = true;
 
     selectedPlayerCount =
       onlinePlayerNames.length;
@@ -709,12 +714,178 @@
     true
   );
 
+    function applyOnlineShowdown(state) {
+    stageLabel.textContent = "Showdown";
+
+    gameScreen.classList.add(
+      "results-active"
+    );
+
+    while (
+      processedOnlineReveals <
+      state.reveals.length
+    ) {
+      const reveal =
+        state.reveals[
+          processedOnlineReveals
+        ];
+
+      const playerIndex =
+        onlinePlayerUids.indexOf(
+          reveal.uid
+        );
+
+      if (playerIndex === -1) {
+        break;
+      }
+
+      const hand = [
+        reveal.card1,
+        reveal.card2
+      ];
+
+      playerHands[playerIndex] = hand;
+
+      const result =
+        PokerEvaluator.evaluateSeven(
+          hand.concat(communityCards)
+        );
+
+      revealPrivateCards(playerIndex);
+
+      if (processedOnlineReveals === 0) {
+        addHandResult(
+          playerIndex,
+          result,
+          "Waiting for the next hand…",
+          "pending-result"
+        );
+      } else {
+        const previousEntry =
+          onlineRevealResults[
+            processedOnlineReveals - 1
+          ];
+
+        const comparison =
+          PokerEvaluator.compareScores(
+            result.score,
+            previousEntry.result.score
+          );
+
+        if (comparison > 0) {
+          addHandResult(
+            playerIndex,
+            result,
+            "✓ Correctly higher",
+            "correct-result"
+          );
+
+          if (
+            processedOnlineReveals === 1
+          ) {
+            updateFirstResultStatus(
+              "✓ Correctly lower",
+              "correct-result"
+            );
+          }
+        } else if (comparison === 0) {
+          addHandResult(
+            playerIndex,
+            result,
+            "🤝 Tie — accepted",
+            "correct-result"
+          );
+
+          if (
+            processedOnlineReveals === 1
+          ) {
+            updateFirstResultStatus(
+              "🤝 Tie — accepted",
+              "correct-result"
+            );
+          }
+        } else {
+          onlineOrderCorrect = false;
+
+          addHandResult(
+            playerIndex,
+            result,
+            "✕ Out of order",
+            "wrong-result"
+          );
+
+          if (
+            processedOnlineReveals === 1
+          ) {
+            updateFirstResultStatus(
+              "✕ Out of order",
+              "wrong-result"
+            );
+          }
+        }
+
+        minimizeRevealedPlayer(
+          previousEntry.playerIndex
+        );
+      }
+
+      onlineRevealResults.push({
+        playerIndex: playerIndex,
+        result: result
+      });
+
+      processedOnlineReveals += 1;
+
+      showNotification(
+        playerNames[playerIndex] +
+        " — " +
+        result.description
+      );
+    }
+
+    if (
+      processedOnlineReveals ===
+      onlinePlayerUids.length
+    ) {
+      advanceButton.disabled = true;
+
+      advanceButton.textContent =
+        onlineOrderCorrect
+          ? "✓ Round Successful!"
+          : "✕ Round Failed";
+
+      return;
+    }
+
+    const nextPlayerIndex =
+      onlinePlayerUids.indexOf(
+        state.nextUid
+      );
+
+    if (state.nextUid === onlinePlayerUids[0]) {
+      advanceButton.disabled = false;
+      advanceButton.textContent =
+        "Reveal My Hand";
+    } else {
+      advanceButton.disabled = true;
+      advanceButton.textContent =
+        "Waiting for " +
+        (
+          playerNames[nextPlayerIndex] ||
+          "next player"
+        );
+    }
+  }
+
   window.PokerDynamicPlayers = {
     startOnlineOpening:
       startOnlineOpening,
 
     applyOnlineState:
-      applyOnlineState
+      applyOnlineState,
+
+    applyOnlineShowdown:
+      applyOnlineShowdown
   };
 
   updatePlayerSelection(4);
