@@ -504,13 +504,20 @@ function renderTokenRequests() {
             .slice(0, 7);
         });
 
-      if (compactNames.length === 1) {
-        requestText.textContent =
-          compactNames[0] + "\nwants";
-      } else {
-        requestText.textContent =
-          compactNames.join("\n");
-      }
+            compactNames.forEach(function (name) {
+        const requesterLine =
+          document.createElement("span");
+
+        requesterLine.className =
+          "token-request-name";
+
+        requesterLine.textContent =
+          name + " wants";
+
+        requestText.appendChild(
+          requesterLine
+        );
+      });
 
       button.appendChild(requestText);
     }

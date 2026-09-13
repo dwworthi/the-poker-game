@@ -492,5 +492,28 @@
       };
   }
 
+    const onlineGameScreen =
+    document.querySelector("#game-screen");
+
+  onlineGameScreen.addEventListener(
+    "click",
+    function (event) {
+      if (!window.pokerOnlineMode) {
+        return;
+      }
+
+      const tappedSeat =
+        event.target.closest(
+          ".player-seat, .you-seat"
+        );
+
+      if (tappedSeat) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    },
+    true
+  );
+
   connectToOpeningFunction();
 })();

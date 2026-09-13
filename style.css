@@ -1595,3 +1595,12 @@ button:disabled {
   overflow: visible;
   font-size: 0.4rem;
 }
+.token-request-name {
+  display: block;
+  width: 100%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
