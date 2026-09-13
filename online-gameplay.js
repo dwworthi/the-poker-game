@@ -13,14 +13,24 @@
   let currentOnlineStage = "preflop";
   let allOnlineRequests = {};
   let allOnlineConfirmations = {};
+  let allOnlineReveals = {};
   let visibleOnlineCommunity = [];
+  let ownOnlineHand = null;
   let stageAdvanceInProgress = false;
   let synchronizationStarted = false;
+
+  function getRequestStage() {
+    if (currentOnlineStage === "showdown") {
+      return "river";
+    }
+
+    return currentOnlineStage;
+  }
 
   function getCurrentRequests() {
     return (
       allOnlineRequests[
-        currentOnlineStage
+        getRequestStage()
       ] || {}
     );
   }
@@ -28,9 +38,26 @@
   function getCurrentConfirmations() {
     return (
       allOnlineConfirmations[
-        currentOnlineStage
+        getRequestStage()
       ] || {}
     );
+  }
+
+  function getPlayerName(uid) {
+    const localIndex =
+      localPlayerOrder.indexOf(uid);
+
+    if (
+      localIndex !== -1 &&
+      typeof playerNames !== "undefined"
+    ) {
+      return (
+        playerNames[localIndex] ||
+        "Player"
+      );
+    }
+
+    return "Player";
   }
 
   function createArrangementSignature(
@@ -38,14 +65,14 @@
   ) {
     return canonicalPlayerOrder
       .map(function (uid) {
-        const request = requests[uid];
+        const choice = requests[uid];
 
         return (
           uid +
           ":" +
           (
-            typeof request === "number"
-              ? request
+            typeof choice === "number"
+              ? choice
               : "-"
           )
         );
@@ -75,6 +102,148 @@
     );
   }
 
+  function getRevealOrder() {
+    const requests = getCurrentRequests();
+
+    return canonicalPlayerOrder
+      .slice()
+      .sort(function (firstUid, secondUid) {
+        return (
+          requests[firstUid] -
+          requests[secondUid]
+        );
+      });
+  }
+
+  function getOrderedReveals() {
+    const revealOrder = getRevealOrder();
+    const orderedReveals = [];
+
+    revealOrder.forEach(function (uid) {
+      const reveal =
+        allOnlineReveals[uid];
+
+      if (reveal) {
+        orderedReveals.push({
+          uid: uid,
+          card1: reveal.card1,
+          card2: reveal.card2
+        });
+      }
+    });
+
+    return orderedReveals;
+  }
+
+  function updateConfirmationBanner() {
+    notificationBanner.hidden = false;
+
+    if (currentOnlineStage === "showdown") {
+      const revealOrder =
+        getRevealOrder();
+
+      const revealedCount =
+        getOrderedReveals().length;
+
+      const nextUid =
+        revealOrder[revealedCount];
+
+      if (nextUid) {
+        notificationBanner.textContent =
+          "Waiting for " +
+          getPlayerName(nextUid) +
+          " to reveal";
+      } else {
+        notificationBanner.textContent =
+          "All hands revealed";
+      }
+
+      return;
+    }
+
+    const requests =
+      getCurrentRequests();
+
+    const waitingForChoice =
+      canonicalPlayerOrder.filter(
+        function (uid) {
+          return (
+            typeof requests[uid] !==
+            "number"
+          );
+        }
+      );
+
+    if (waitingForChoice.length > 0) {
+      notificationBanner.textContent =
+        "Waiting for token: " +
+        waitingForChoice
+          .map(getPlayerName)
+          .join(", ");
+
+      return;
+    }
+
+    if (!requestsAreSettled(requests)) {
+      notificationBanner.textContent =
+        "Two or more players want the same token";
+
+      return;
+    }
+
+    const signature =
+      createArrangementSignature(
+        requests
+      );
+
+    const confirmations =
+      getCurrentConfirmations();
+
+    const confirmedPlayers =
+      canonicalPlayerOrder.filter(
+        function (uid) {
+          return (
+            confirmations[uid] ===
+            signature
+          );
+        }
+      );
+
+    const waitingPlayers =
+      canonicalPlayerOrder.filter(
+        function (uid) {
+          return (
+            confirmations[uid] !==
+            signature
+          );
+        }
+      );
+
+    if (waitingPlayers.length === 0) {
+      notificationBanner.textContent =
+        "Everyone confirmed — continuing…";
+
+      return;
+    }
+
+    let message =
+      "Waiting for confirmation: " +
+      waitingPlayers
+        .map(getPlayerName)
+        .join(", ");
+
+    if (confirmedPlayers.length > 0) {
+      message +=
+        " • Confirmed: " +
+        confirmedPlayers
+          .map(getPlayerName)
+          .join(", ");
+    }
+
+    notificationBanner.textContent =
+      message;
+  }
+
   function displayOnlineState() {
     if (
       !window.PokerDynamicPlayers ||
@@ -84,7 +253,8 @@
       return;
     }
 
-    const requests = getCurrentRequests();
+    const requests =
+      getCurrentRequests();
 
     window.PokerDynamicPlayers
       .applyOnlineState({
@@ -106,6 +276,30 @@
         visibleCommunity:
           visibleOnlineCommunity
       });
+
+    updateConfirmationBanner();
+
+    if (
+      currentOnlineStage === "showdown" &&
+      window.PokerDynamicPlayers
+        .applyOnlineShowdown
+    ) {
+      const revealOrder =
+        getRevealOrder();
+
+      const orderedReveals =
+        getOrderedReveals();
+
+      window.PokerDynamicPlayers
+        .applyOnlineShowdown({
+          reveals: orderedReveals,
+
+          nextUid:
+            revealOrder[
+              orderedReveals.length
+            ] || null
+        });
+    }
   }
 
   async function loadVisibleCommunity() {
@@ -118,23 +312,19 @@
         currentOnlineStage === "preflop"
       ) {
         visibleOnlineCommunity = [];
-      }
-
-      if (
+      } else if (
         currentOnlineStage === "flop"
       ) {
-        const flopSnapshot =
+        const snapshot =
           await currentRoomRef
             .child("board/flop")
             .once("value");
 
         visibleOnlineCommunity =
           Object.values(
-            flopSnapshot.val() || {}
+            snapshot.val() || {}
           );
-      }
-
-      if (
+      } else if (
         currentOnlineStage === "turn"
       ) {
         const snapshots =
@@ -156,11 +346,7 @@
         visibleOnlineCommunity.push(
           snapshots[1].val()
         );
-      }
-
-      if (
-        currentOnlineStage === "river"
-      ) {
+      } else {
         const snapshots =
           await Promise.all([
             currentRoomRef
@@ -193,12 +379,18 @@
         "Community cards failed:",
         error
       );
+
+      window.setTimeout(
+        loadVisibleCommunity,
+        500
+      );
     }
   }
 
   async function advanceStageIfReady() {
     if (
       stageAdvanceInProgress ||
+      currentOnlineStage === "showdown" ||
       !onlineUser ||
       onlineUser.uid !==
         currentRoomHostUid
@@ -206,14 +398,17 @@
       return;
     }
 
-    const requests = getCurrentRequests();
+    const requests =
+      getCurrentRequests();
 
     if (!requestsAreSettled(requests)) {
       return;
     }
 
     const signature =
-      createArrangementSignature(requests);
+      createArrangementSignature(
+        requests
+      );
 
     const confirmations =
       getCurrentConfirmations();
@@ -237,17 +432,14 @@
         currentOnlineStage
       );
 
-    if (
-      currentIndex === -1 ||
-      currentIndex ===
-        stageOrder.length - 1
-    ) {
-      displayOnlineState();
+    const nextStage =
+      currentOnlineStage === "river"
+        ? "showdown"
+        : stageOrder[currentIndex + 1];
+
+    if (!nextStage) {
       return;
     }
-
-    const nextStage =
-      stageOrder[currentIndex + 1];
 
     stageAdvanceInProgress = true;
 
@@ -271,6 +463,11 @@
         "Stage advance failed:",
         error
       );
+
+      showNotification(
+        "Stage failed: " +
+        (error.code || error.message)
+      );
     } finally {
       stageAdvanceInProgress = false;
     }
@@ -285,9 +482,9 @@
     tokenNumber
   ) {
     if (
+      currentOnlineStage === "showdown" ||
       !currentRoomRef ||
-      !onlineUser ||
-      !currentOnlineStage
+      !onlineUser
     ) {
       return;
     }
@@ -319,14 +516,69 @@
         error
       );
 
-            showNotification(
+      showNotification(
         "Token failed: " +
         (error.code || error.message)
       );
     }
   }
 
+  async function revealOwnHand() {
+    if (
+      currentOnlineStage !== "showdown" ||
+      !currentRoomRef ||
+      !onlineUser ||
+      !ownOnlineHand
+    ) {
+      return;
+    }
+
+    const revealOrder =
+      getRevealOrder();
+
+    const orderedReveals =
+      getOrderedReveals();
+
+    const nextUid =
+      revealOrder[
+        orderedReveals.length
+      ];
+
+    if (nextUid !== onlineUser.uid) {
+      return;
+    }
+
+    try {
+      await currentRoomRef
+        .child(
+          "reveals/" +
+          onlineUser.uid
+        )
+        .set({
+          card1: ownOnlineHand[0],
+          card2: ownOnlineHand[1]
+        });
+    } catch (error) {
+      console.error(
+        "Hand reveal failed:",
+        error
+      );
+
+      showNotification(
+        "Reveal failed: " +
+        (error.code || error.message)
+      );
+    }
+  }
+
   async function confirmOnlineChoice() {
+    if (
+      currentOnlineStage === "showdown"
+    ) {
+      revealOwnHand();
+      return;
+    }
+
     if (
       !currentRoomRef ||
       !onlineUser
@@ -362,34 +614,16 @@
       );
 
       showNotification(
-        "Confirmation failed — try again"
+        "Confirmation failed: " +
+        (error.code || error.message)
       );
     }
   }
 
-  function stopOnlineGameListeners() {
-    if (!currentRoomRef) {
-      return;
-    }
-
-    currentRoomRef
-      .child("requests")
-      .off();
-
-    currentRoomRef
-      .child("confirmations")
-      .off();
-
-    currentRoomRef
-      .child("meta/stage")
-      .off();
-
-    synchronizationStarted = false;
-  }
-
   function startOnlineGameListeners(
     localUids,
-    canonicalUids
+    canonicalUids,
+    hand
   ) {
     if (
       synchronizationStarted ||
@@ -405,6 +639,9 @@
 
     canonicalPlayerOrder =
       canonicalUids.slice();
+
+    ownOnlineHand =
+      hand.slice();
 
     currentRoomRef
       .child("requests")
@@ -425,14 +662,26 @@
       });
 
     currentRoomRef
+      .child("reveals")
+      .on("value", function (snapshot) {
+        allOnlineReveals =
+          snapshot.val() || {};
+
+        displayOnlineState();
+      });
+
+    currentRoomRef
       .child("meta/stage")
       .on("value", function (snapshot) {
-        const newStage = snapshot.val();
+        const newStage =
+          snapshot.val();
 
         if (
-          stageOrder.includes(newStage)
+          stageOrder.includes(newStage) ||
+          newStage === "showdown"
         ) {
-                    currentOnlineStage = newStage;
+          currentOnlineStage =
+            newStage;
 
           window.setTimeout(
             loadVisibleCommunity,
@@ -447,10 +696,7 @@
       chooseOnlineToken,
 
     confirm:
-      confirmOnlineChoice,
-
-    stop:
-      stopOnlineGameListeners
+      confirmOnlineChoice
   };
 
   function connectToOpeningFunction() {
@@ -487,12 +733,13 @@
 
         startOnlineGameListeners(
           localUids,
-          canonicalUids
+          canonicalUids,
+          hand
         );
       };
   }
 
-    const onlineGameScreen =
+  const onlineGameScreen =
     document.querySelector("#game-screen");
 
   onlineGameScreen.addEventListener(
