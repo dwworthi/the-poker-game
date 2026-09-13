@@ -1575,3 +1575,23 @@ button:disabled {
   margin-top: 10px;
   background: var(--gold);
 }
+/* Keep every token requester visible */
+.token-request-text {
+  width: 44px;
+  max-height: none;
+
+  overflow: visible;
+
+  font-size: 0.45rem;
+  line-height: 1.05;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.player-count-5 .token-request-text,
+.player-count-6 .token-request-text {
+  width: 36px;
+  max-height: none;
+  overflow: visible;
+  font-size: 0.4rem;
+}

@@ -497,12 +497,19 @@ function renderTokenRequests() {
           );
         });
 
-      if (shortNames.length === 1) {
+            const compactNames =
+        shortNames.map(function (name) {
+          return name
+            .split(" ")[0]
+            .slice(0, 7);
+        });
+
+      if (compactNames.length === 1) {
         requestText.textContent =
-          shortNames[0] + " wants";
+          compactNames[0] + "\nwants";
       } else {
         requestText.textContent =
-          shortNames.join(" + ");
+          compactNames.join("\n");
       }
 
       button.appendChild(requestText);
