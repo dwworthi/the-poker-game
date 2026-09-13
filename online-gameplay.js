@@ -279,7 +279,7 @@
 
     updateConfirmationBanner();
 
-    if (
+        if (
       currentOnlineStage === "showdown" &&
       window.PokerDynamicPlayers
         .applyOnlineShowdown
@@ -290,14 +290,30 @@
       const orderedReveals =
         getOrderedReveals();
 
+      const nextUid =
+        revealOrder[
+          orderedReveals.length
+        ] || null;
+
+      if (nextUid === onlineUser.uid) {
+        advanceButton.disabled = false;
+        advanceButton.textContent =
+          "Reveal My Hand";
+      } else if (nextUid) {
+        advanceButton.disabled = true;
+        advanceButton.textContent =
+          "Waiting for " +
+          getPlayerName(nextUid);
+      } else {
+        advanceButton.disabled = true;
+        advanceButton.textContent =
+          "Finishing Results…";
+      }
+
       window.PokerDynamicPlayers
         .applyOnlineShowdown({
           reveals: orderedReveals,
-
-          nextUid:
-            revealOrder[
-              orderedReveals.length
-            ] || null
+          nextUid: nextUid
         });
     }
   }
