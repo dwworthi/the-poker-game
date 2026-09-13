@@ -518,9 +518,25 @@
       const onlineGameplayScript =
         document.createElement("script");
 
-      onlineGameplayScript.src =
+            onlineGameplayScript.src =
         "online-gameplay.js?v=" +
         window.gameCacheVersion;
+
+      onlineGameplayScript.onload =
+        function () {
+          const onlineRoundsScript =
+            document.createElement(
+              "script"
+            );
+
+          onlineRoundsScript.src =
+            "online-rounds.js?v=" +
+            window.gameCacheVersion;
+
+          document.body.appendChild(
+            onlineRoundsScript
+          );
+        };
 
       document.body.appendChild(
         onlineGameplayScript

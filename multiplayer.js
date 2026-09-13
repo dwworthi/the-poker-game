@@ -854,7 +854,16 @@ async function startOnlineGame() {
     const updates = {
         "game/playerOrder": playerOrder,
       "game/playerNames": playerNames,
-      "game/playerCount": playerOrder.length,
+            "game/playerCount": playerOrder.length,
+
+      "game/score": {
+        successes: 0,
+        failures: 0,
+        roundNumber: 1,
+        lastScoredRound: 0,
+        gameOver: false
+      },
+
       "game/startedAt":
         firebase.database.ServerValue.TIMESTAMP,
 

@@ -638,9 +638,19 @@
       }
     );
 
-    gameScreen.classList.remove(
+        gameScreen.classList.remove(
       "results-active"
     );
+
+    document
+      .querySelectorAll(
+        ".reveal-minimized"
+      )
+      .forEach(function (seat) {
+        seat.classList.remove(
+          "reveal-minimized"
+        );
+      });
 
     document
       .querySelectorAll(
@@ -1032,19 +1042,26 @@
         comparisonText;
     }
 
-    if (
-      processedOnlineReveals ===
-      onlinePlayerUids.length
-    ) {
-      advanceButton.disabled = true;
+      if (
+    processedOnlineReveals ===
+    onlinePlayerUids.length
+  ) {
+    advanceButton.disabled = true;
 
-      advanceButton.textContent =
-        onlineOrderCorrect
-          ? "✓ Round Successful!"
-          : "✕ Round Failed";
+    advanceButton.textContent =
+      onlineOrderCorrect
+        ? "✓ Round Successful!"
+        : "✕ Round Failed";
 
-      return;
+    if (window.PokerRoundActions) {
+      window.PokerRoundActions
+        .reportResult(
+          onlineOrderCorrect
+        );
     }
+
+    return;
+  }
 
     const nextPlayerIndex =
       onlinePlayerUids.indexOf(

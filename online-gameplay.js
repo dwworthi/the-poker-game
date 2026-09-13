@@ -588,9 +588,23 @@
   }
 
   async function confirmOnlineChoice() {
-    if (
+        if (
       currentOnlineStage === "showdown"
     ) {
+      const allHandsRevealed =
+        getOrderedReveals().length ===
+        canonicalPlayerOrder.length;
+
+      if (
+        allHandsRevealed &&
+        window.PokerRoundActions
+      ) {
+        window.PokerRoundActions
+          .primaryAction();
+
+        return;
+      }
+
       revealOwnHand();
       return;
     }
@@ -636,19 +650,14 @@
     }
   }
 
-  function startOnlineGameListeners(
+    function startOnlineGameListeners(
     localUids,
     canonicalUids,
     hand
   ) {
-    if (
-      synchronizationStarted ||
-      !currentRoomRef
-    ) {
+    if (!currentRoomRef) {
       return;
     }
-
-    synchronizationStarted = true;
 
     localPlayerOrder =
       localUids.slice();
@@ -658,6 +667,19 @@
 
     ownOnlineHand =
       hand.slice();
+
+    if (synchronizationStarted) {
+      currentOnlineStage = "preflop";
+      allOnlineRequests = {};
+      allOnlineConfirmations = {};
+      allOnlineReveals = {};
+      visibleOnlineCommunity = [];
+      return;
+    }
+
+    synchronizationStarted = true;
+
+    
 
     currentRoomRef
       .child("requests")
