@@ -11,7 +11,7 @@
   let currentScore = null;
   let lastOpenedRound = null;
   let resultBeingSaved = false;
-  let newRoundBeingDealt = false;
+  let listenedScoreRoomRef = null;
 
   function isHost() {
     return (
@@ -432,46 +432,86 @@
     }
   }
 
-  function watchRoundScore() {
-    if (!currentRoomRef) {
-      window.setTimeout(
-        watchRoundScore,
-        100
-      );
+  function handleRoundScore(snapshot) {
+  const score =
+    snapshot.val();
 
-      return;
+  if (!score) {
+    return;
+  }
+
+  currentScore = score;
+  updateScoreScreen(score);
+
+  if (lastOpenedRound === null) {
+    lastOpenedRound =
+      score.roundNumber;
+  } else if (
+    score.roundNumber !==
+    lastOpenedRound
+  ) {
+    openNewRound(
+      score.roundNumber
+    );
+
+    return;
+  }
+
+  updateRoundButton();
+}
+
+function watchRoundScore() {
+  const newestRoomRef =
+    typeof currentRoomRef === "undefined"
+      ? null
+      : currentRoomRef;
+
+  if (
+    newestRoomRef !==
+    listenedScoreRoomRef
+  ) {
+    if (listenedScoreRoomRef) {
+      listenedScoreRoomRef
+        .child("game/score")
+        .off(
+          "value",
+          handleRoundScore
+        );
     }
 
-    currentRoomRef
-      .child("game/score")
-      .on("value", function (snapshot) {
-        const score =
-          snapshot.val();
+    listenedScoreRoomRef =
+      newestRoomRef;
 
-        if (!score) {
-          return;
-        }
+    currentScore = null;
+    lastOpenedRound = null;
+    resultBeingSaved = false;
+    newRoundBeingDealt = false;
 
-        currentScore = score;
-        updateScoreScreen(score);
+    /*
+     * Clear the previous room's score while
+     * waiting for the new game to begin.
+     */
+    updateScoreScreen({
+      successes: 0,
+      failures: 0,
+      roundNumber: 1
+    });
 
-        if (lastOpenedRound === null) {
-          lastOpenedRound =
-            score.roundNumber;
-        } else if (
-          score.roundNumber !==
-          lastOpenedRound
-        ) {
-          openNewRound(
-            score.roundNumber
-          );
-
-          return;
-        }
-
-        updateRoundButton();
-      });
+    if (listenedScoreRoomRef) {
+      listenedScoreRoomRef
+        .child("game/score")
+        .on(
+          "value",
+          handleRoundScore
+        );
+    }
   }
+
+  window.setTimeout(
+    watchRoundScore,
+    250
+  );
+}
 
   function primaryAction() {
     if (

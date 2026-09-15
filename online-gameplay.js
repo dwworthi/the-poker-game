@@ -17,7 +17,7 @@
   let visibleOnlineCommunity = [];
   let ownOnlineHand = null;
   let stageAdvanceInProgress = false;
-  let synchronizationStarted = false;
+  let listenedRoomRef = null;
 
   function getRequestStage() {
     if (currentOnlineStage === "showdown") {
@@ -650,84 +650,120 @@
     }
   }
 
-    function startOnlineGameListeners(
-    localUids,
-    canonicalUids,
-    hand
-  ) {
-    if (!currentRoomRef) {
-      return;
-    }
-
-    localPlayerOrder =
-      localUids.slice();
-
-    canonicalPlayerOrder =
-      canonicalUids.slice();
-
-    ownOnlineHand =
-      hand.slice();
-
-    if (synchronizationStarted) {
-      currentOnlineStage = "preflop";
-      allOnlineRequests = {};
-      allOnlineConfirmations = {};
-      allOnlineReveals = {};
-      visibleOnlineCommunity = [];
-      return;
-    }
-
-    synchronizationStarted = true;
-
-    
-
-    currentRoomRef
-      .child("requests")
-      .on("value", function (snapshot) {
-        allOnlineRequests =
-          snapshot.val() || {};
-
-        refreshOnlineState();
-      });
-
-    currentRoomRef
-      .child("confirmations")
-      .on("value", function (snapshot) {
-        allOnlineConfirmations =
-          snapshot.val() || {};
-
-        refreshOnlineState();
-      });
-
-    currentRoomRef
-      .child("reveals")
-      .on("value", function (snapshot) {
-        allOnlineReveals =
-          snapshot.val() || {};
-
-        displayOnlineState();
-      });
-
-    currentRoomRef
-      .child("meta/stage")
-      .on("value", function (snapshot) {
-        const newStage =
-          snapshot.val();
-
-        if (
-          stageOrder.includes(newStage) ||
-          newStage === "showdown"
-        ) {
-          currentOnlineStage =
-            newStage;
-
-          window.setTimeout(
-            loadVisibleCommunity,
-            350
-          );
-        }
-      });
+    function stopOnlineGameListeners() {
+  if (!listenedRoomRef) {
+    return;
   }
+
+  listenedRoomRef
+    .child("requests")
+    .off();
+
+  listenedRoomRef
+    .child("confirmations")
+    .off();
+
+  listenedRoomRef
+    .child("reveals")
+    .off();
+
+  listenedRoomRef
+    .child("meta/stage")
+    .off();
+
+  listenedRoomRef = null;
+}
+
+function startOnlineGameListeners(
+  localUids,
+  canonicalUids,
+  hand
+) {
+  if (!currentRoomRef) {
+    return;
+  }
+
+  localPlayerOrder =
+    localUids.slice();
+
+  canonicalPlayerOrder =
+    canonicalUids.slice();
+
+  ownOnlineHand =
+    hand.slice();
+
+  currentOnlineStage = "preflop";
+  allOnlineRequests = {};
+  allOnlineConfirmations = {};
+  allOnlineReveals = {};
+  visibleOnlineCommunity = [];
+
+  /*
+   * During a new round in the same room,
+   * the existing listeners can stay connected.
+   */
+  if (
+    listenedRoomRef === currentRoomRef
+  ) {
+    displayOnlineState();
+    return;
+  }
+
+  /*
+   * When entering a different room, disconnect
+   * every listener from the previous room.
+   */
+  stopOnlineGameListeners();
+
+  listenedRoomRef = currentRoomRef;
+
+  listenedRoomRef
+    .child("requests")
+    .on("value", function (snapshot) {
+      allOnlineRequests =
+        snapshot.val() || {};
+
+      refreshOnlineState();
+    });
+
+  listenedRoomRef
+    .child("confirmations")
+    .on("value", function (snapshot) {
+      allOnlineConfirmations =
+        snapshot.val() || {};
+
+      refreshOnlineState();
+    });
+
+  listenedRoomRef
+    .child("reveals")
+    .on("value", function (snapshot) {
+      allOnlineReveals =
+        snapshot.val() || {};
+
+      displayOnlineState();
+    });
+
+  listenedRoomRef
+    .child("meta/stage")
+    .on("value", function (snapshot) {
+      const newStage =
+        snapshot.val();
+
+      if (
+        stageOrder.includes(newStage) ||
+        newStage === "showdown"
+      ) {
+        currentOnlineStage =
+          newStage;
+
+        window.setTimeout(
+          loadVisibleCommunity,
+          350
+        );
+      }
+    });
+}
 
   window.PokerOnlineActions = {
     chooseToken:
